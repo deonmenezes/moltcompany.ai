@@ -95,6 +95,7 @@ export async function launchInstance({
   apiKey,
   telegramToken,
   gatewayToken,
+  characterFiles,
 }: {
   userId: string
   modelProvider: string
@@ -102,12 +103,24 @@ export async function launchInstance({
   apiKey: string
   telegramToken: string
   gatewayToken: string
+  characterFiles?: Record<string, string>
 }) {
   const sgId = await getOrCreateSecurityGroup()
   const customAmiId = process.env.OPENCLAW_AMI_ID
   const amiId = customAmiId || await getUbuntuAmi()
 
   const apiKeyEnvVar = MODEL_ENV_MAP[modelProvider] || 'ANTHROPIC_API_KEY'
+
+  // Build base64-encoded write commands for character .md files
+  let characterFileCommands = ''
+  if (characterFiles) {
+    for (const [name, content] of Object.entries(characterFiles)) {
+      if (content) {
+        const b64 = Buffer.from(content).toString('base64')
+        characterFileCommands += `echo "${b64}" | base64 -d > /opt/openclaw-config/${name}.md\n`
+      }
+    }
+  }
 
   // Custom AMI has Docker + image pre-installed, just start Docker and run container
   // Fallback to base Ubuntu AMI installs Docker first
@@ -124,8 +137,15 @@ ${setupCommands}
 # Create Docker network for openclaw + browser sidecar
 docker network create openclaw-net
 
-# Get public IP for origin allowlist
-PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
+# Get public IP via IMDSv2 (with IMDSv1 fallback)
+IMDS_TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 300" || echo "")
+if [ -n "$IMDS_TOKEN" ]; then
+  PUBLIC_IP=$(curl -s -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+    http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
+else
+  PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
+fi
 
 # Create openclaw config for public IP access
 mkdir -p /opt/openclaw-config
@@ -136,7 +156,7 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,
-      "allowedOrigins": ["http://$PUBLIC_IP:8080", "http://localhost:8080", "*"]
+      "allowedOrigins": ["*"]
     },
     "auth": {
       "mode": "token"
@@ -145,11 +165,14 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
 }
 CONFIGEOF
 
+# Write character .md files
+${characterFileCommands}
 # Create data volume and seed the config into it (where openclaw reads from)
 docker volume create openclaw-data
 docker run --rm -v openclaw-data:/data -v /opt/openclaw-config:/config alpine sh -c '
   mkdir -p /data/.openclaw
   cp /config/openclaw.json /data/.openclaw/openclaw.json
+  ls /config/*.md 2>/dev/null && cp /config/*.md /data/.openclaw/ || true
   chown -R 1000:1000 /data/.openclaw
 '
 
@@ -169,8 +192,6 @@ docker run -d \
   --restart unless-stopped \
   -p 8080:8080 \
   -v openclaw-data:/data \
-  -v /opt/openclaw-config/openclaw.json:/app/config/openclaw.json \
-  -e OPENCLAW_CUSTOM_CONFIG=/app/config/openclaw.json \
   -e BROWSER_CDP_URL=http://browser:9223 \
   -e BROWSER_DEFAULT_PROFILE=openclaw \
   -e BROWSER_EVALUATE_ENABLED=true \

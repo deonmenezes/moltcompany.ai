@@ -9,6 +9,8 @@ import { ChannelSelector } from '@/components/ChannelSelector'
 import { TelegramConnect } from '@/components/TelegramConnect'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { DeployButton } from '@/components/DeployButton'
+import { CharacterEditor } from '@/components/CharacterEditor'
+import { getCharacterFilesForBot, type CharacterFiles } from '@/lib/character-files'
 
 function AvatarFallback({ name, size }: { name: string; size: number }) {
   return (
@@ -32,6 +34,7 @@ function DeployForm() {
   const [selectedChannel, setSelectedChannel] = useState('telegram')
   const [telegramToken, setTelegramToken] = useState('')
   const [apiKey, setApiKey] = useState('')
+  const [characterFiles, setCharacterFiles] = useState<CharacterFiles>(() => getCharacterFilesForBot(initialModel.id))
 
   if (loading) {
     return (
@@ -73,6 +76,7 @@ function DeployForm() {
         channel: selectedChannel,
         telegram_bot_token: telegramToken,
         llm_api_key: apiKey,
+        character_files: characterFiles,
       }),
     })
 
@@ -127,7 +131,7 @@ function DeployForm() {
             <div className="w-8 h-8 bg-brand-yellow border-3 border-black flex items-center justify-center font-display font-black text-sm">1</div>
             <h2 className="comic-heading text-xl">Choose your AI model</h2>
           </div>
-          <ModelSelector selected={selectedModel.id} onSelect={(m) => { setSelectedModel(m); setAvatarError(false) }} />
+          <ModelSelector selected={selectedModel.id} onSelect={(m) => { setSelectedModel(m); setAvatarError(false); setCharacterFiles(getCharacterFilesForBot(m.id)) }} />
         </section>
 
         {/* Step 2: Channel */}
@@ -159,10 +163,20 @@ function DeployForm() {
           <ApiKeyInput provider={selectedModel.provider} apiKey={apiKey} onSave={setApiKey} />
         </section>
 
-        {/* Step 5: Deploy */}
+        {/* Step 5: Customize Character */}
         <section className="mb-10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 bg-brand-yellow border-3 border-black flex items-center justify-center font-display font-black text-sm">5</div>
+            <h2 className="comic-heading text-xl">Customize Character</h2>
+          </div>
+          <p className="text-sm text-brand-gray-medium mb-4">Edit the personality files that define how {selectedModel.characterName} thinks and behaves. Presets are loaded automatically.</p>
+          <CharacterEditor files={characterFiles} onChange={setCharacterFiles} />
+        </section>
+
+        {/* Step 6: Deploy */}
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-brand-yellow border-3 border-black flex items-center justify-center font-display font-black text-sm">6</div>
             <h2 className="comic-heading text-xl">Deploy</h2>
           </div>
           {!isReady && (

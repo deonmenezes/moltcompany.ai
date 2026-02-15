@@ -13,10 +13,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { model_provider, model_name, channel, telegram_bot_token, llm_api_key } = body
+    const { model_provider, model_name, channel, telegram_bot_token, llm_api_key, character_files } = body
 
     if (!model_provider || !model_name || !channel || !telegram_bot_token || !llm_api_key) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Validate character files size (EC2 user-data has 16KB limit, ~6KB reserved for script)
+    if (character_files && typeof character_files === 'object') {
+      const totalBytes = Object.values(character_files as Record<string, string>)
+        .reduce((sum: number, content) => sum + new TextEncoder().encode(content as string).byteLength, 0)
+      if (totalBytes > 8 * 1024) {
+        return NextResponse.json({ error: 'Character files exceed 8 KB limit' }, { status: 400 })
+      }
     }
 
     // Get or create user in our users table
@@ -65,6 +74,7 @@ export async function POST(req: NextRequest) {
       apiKey: llm_api_key,
       telegramToken: telegram_bot_token,
       gatewayToken,
+      characterFiles: character_files || undefined,
     })
 
     await supabase.from('instances').insert({

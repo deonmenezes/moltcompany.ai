@@ -28,10 +28,10 @@ export async function createCheckoutSession({
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'OpenClaw Managed Instance',
-            description: 'Fully managed OpenClaw AI assistant on AWS',
+            name: 'OpenClaw AI Bot - Managed Instance',
+            description: 'Fully managed AI Telegram bot on dedicated AWS infrastructure',
           },
-          unit_amount: 2500,
+          unit_amount: 4000,
           recurring: { interval: 'month' },
         },
         quantity: 1,

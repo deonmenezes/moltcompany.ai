@@ -2,156 +2,144 @@
 
 import { useAuth } from '@/components/AuthProvider'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { InstanceCard } from '@/components/InstanceCard'
+import Link from 'next/link'
 
 export default function DashboardPage() {
-  const { user, session, loading: authLoading } = useAuth()
-  const router = useRouter()
+  const { user, session, loading } = useAuth()
   const [instance, setInstance] = useState<any>(null)
   const [subscription, setSubscription] = useState<any>(null)
-  const [stripeCustomerId, setStripeCustomerId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [fetching, setFetching] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/deploy')
-    }
-  }, [authLoading, user, router])
-
-  useEffect(() => {
-    if (session) {
-      fetchInstance()
-      const interval = setInterval(fetchInstance, 15000)
-      return () => clearInterval(interval)
-    }
-  }, [session])
-
   const fetchInstance = async () => {
+    if (!session?.access_token) return
     try {
       const res = await fetch('/api/instance', {
-        headers: { 'Authorization': `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
       const data = await res.json()
-      // Treat terminated/failed instances as no instance so user can redeploy
-      const inst = data.instance
-      if (inst && (inst.status === 'terminated' || inst.status === 'payment_failed')) {
+      if (data.instance && (data.instance.status === 'terminated' || data.instance.status === 'payment_failed')) {
         setInstance(null)
       } else {
-        setInstance(inst)
+        setInstance(data.instance || null)
       }
-      setSubscription(data.subscription)
-      setStripeCustomerId(data.stripeCustomerId)
+      setSubscription(data.subscription || null)
     } catch (err) {
-      console.error('Failed to fetch instance:', err)
+      console.error('Error fetching instance:', err)
     } finally {
-      setLoading(false)
+      setFetching(false)
     }
   }
+
+  useEffect(() => {
+    if (session) fetchInstance()
+  }, [session])
+
+  useEffect(() => {
+    if (!session) return
+    const interval = setInterval(fetchInstance, 15000)
+    return () => clearInterval(interval)
+  }, [session])
 
   const handleAction = async (action: 'start' | 'stop' | 'terminate') => {
     setActionLoading(true)
     try {
-      const res = action === 'terminate'
-        ? await fetch('/api/instance', {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${session?.access_token}`,
-            },
-          })
-        : await fetch('/api/instance', {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session?.access_token}`,
-            },
-            body: JSON.stringify({ action }),
-          })
-
+      const method = action === 'terminate' ? 'DELETE' : 'PATCH'
+      const body = action === 'terminate' ? undefined : JSON.stringify({ action })
+      const res = await fetch('/api/instance', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body,
+      })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
+        const data = await res.json()
         alert(data.error || `Failed to ${action} instance`)
-        return
       }
       await fetchInstance()
     } catch (err) {
-      console.error('Action failed:', err)
-      alert(`Failed to ${action} instance. Check console for details.`)
+      console.error(`Error ${action}ing instance:`, err)
     } finally {
       setActionLoading(false)
     }
   }
 
-  const handleManageBilling = async () => {
-    const res = await fetch('/api/billing', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${session?.access_token}` },
-    })
-    const data = await res.json()
-    if (data.url) {
-      window.location.href = data.url
-    }
+  if (loading || fetching) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center pt-16">
+        <div className="animate-spin h-8 w-8 border-3 border-brand-yellow border-t-transparent rounded-full" />
+      </div>
+    )
   }
 
-  if (authLoading || loading) {
+  if (!user) {
     return (
-      <div className="min-h-screen bg-dark-bg flex items-center justify-center pt-16">
-        <div className="animate-spin h-8 w-8 border-2 border-accent-blue border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-white flex items-center justify-center pt-16">
+        <div className="text-center">
+          <h2 className="comic-heading text-2xl mb-4">Sign in to view dashboard</h2>
+          <Link href="/deploy" className="comic-btn inline-block">
+            GO TO DEPLOY
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg pt-24 pb-16 px-4">
+    <div className="min-h-screen bg-white pt-24 pb-16 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+        <h1 className="comic-heading text-3xl mb-8">DASHBOARD</h1>
 
-        {!instance ? (
-          <div className="p-8 rounded-2xl bg-dark-card border border-dark-border text-center">
-            <h3 className="text-xl font-semibold mb-2">No instance found</h3>
-            <p className="text-gray-400 mb-6">Deploy your first OpenClaw instance to get started</p>
-            <a
-              href="/deploy"
-              className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-accent-blue to-accent-purple font-semibold hover:opacity-90 transition"
-            >
-              Deploy Now
-            </a>
-          </div>
+        {instance ? (
+          <InstanceCard
+            instance={instance}
+            onAction={handleAction}
+            actionLoading={actionLoading}
+          />
         ) : (
-          <>
-            <InstanceCard
-              instance={instance}
-              onAction={handleAction}
-              actionLoading={actionLoading}
-            />
+          <div className="comic-card p-8 text-center">
+            <h3 className="comic-heading text-xl mb-4">NO ACTIVE INSTANCE</h3>
+            <p className="text-brand-gray-medium mb-6">Deploy your first AI bot to get started</p>
+            <Link href="/deploy" className="comic-btn inline-block">
+              DEPLOY NOW
+            </Link>
+          </div>
+        )}
 
-            {subscription && (
-              <div className="mt-6 p-6 rounded-2xl bg-dark-card border border-dark-border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold mb-1">Subscription</h3>
-                    <p className="text-sm text-gray-400">
-                      Status: <span className={subscription.status === 'active' ? 'text-green-400' : 'text-red-400'}>{subscription.status}</span>
-                    </p>
-                    {subscription.current_period_end && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        Renews: {new Date(subscription.current_period_end).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  {stripeCustomerId && (
-                    <button
-                      onClick={handleManageBilling}
-                      className="px-4 py-2 rounded-lg border border-dark-border text-sm text-gray-400 hover:text-white hover:border-gray-500 transition"
-                    >
-                      Manage Billing
-                    </button>
-                  )}
+        {subscription && (
+          <div className="comic-card p-6 mt-8">
+            <h3 className="comic-heading text-lg mb-4">SUBSCRIPTION</h3>
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <div className="text-xs text-brand-gray-medium font-display font-bold uppercase mb-1">Status</div>
+                <div className="text-sm text-black font-bold capitalize">{subscription.status}</div>
+              </div>
+              <div>
+                <div className="text-xs text-brand-gray-medium font-display font-bold uppercase mb-1">Next renewal</div>
+                <div className="text-sm text-black">
+                  {subscription.current_period_end
+                    ? new Date(subscription.current_period_end).toLocaleDateString()
+                    : 'N/A'}
                 </div>
               </div>
-            )}
-          </>
+            </div>
+            <button
+              onClick={async () => {
+                const res = await fetch('/api/billing', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${session?.access_token}` },
+                })
+                const data = await res.json()
+                if (data.url) window.location.href = data.url
+              }}
+              className="comic-btn-outline text-sm"
+            >
+              MANAGE BILLING
+            </button>
+          </div>
         )}
       </div>
     </div>

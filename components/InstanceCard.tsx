@@ -88,7 +88,7 @@ export function InstanceCard({ instance, onAction, actionLoading }: InstanceCard
       <div className="flex flex-wrap gap-3 mt-6">
         {instance.public_ip && instance.status === 'running' && (
           <a
-            href={`http://${instance.public_ip}:8080`}
+            href={`http://${instance.public_ip}:8080?token=${instance.gateway_token}`}
             target="_blank"
             rel="noopener noreferrer"
             className="comic-btn text-sm py-2 px-4"

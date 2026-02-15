@@ -156,7 +156,8 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,
-      "allowedOrigins": ["*"]
+      "dangerouslyDisableDeviceAuth": true,
+      "allowedOrigins": ["http://\${PUBLIC_IP}:8080", "http://localhost:8080", "*"]
     },
     "auth": {
       "mode": "token"
@@ -171,9 +172,11 @@ ${characterFileCommands}
 docker volume create openclaw-data
 docker run --rm -v openclaw-data:/data -v /opt/openclaw-config:/config alpine sh -c '
   mkdir -p /data/.openclaw
+  mkdir -p /data/workspace
   cp /config/openclaw.json /data/.openclaw/openclaw.json
-  ls /config/*.md 2>/dev/null && cp /config/*.md /data/.openclaw/ || true
+  ls /config/*.md 2>/dev/null && cp /config/*.md /data/workspace/ || true
   chown -R 1000:1000 /data/.openclaw
+  chown -R 1000:1000 /data/workspace
 '
 
 # Start browser sidecar container (required for openclaw)
@@ -202,6 +205,24 @@ docker run -d \
   -e AUTH_USERNAME="admin" \
   -e AUTH_PASSWORD="${gatewayToken}" \
   coollabsio/openclaw:latest
+
+# Wait for openclaw container to be ready, then configure Telegram via CLI only
+(
+  echo "Waiting for openclaw container to be ready..."
+  for i in $(seq 1 60); do
+    if docker exec openclaw openclaw --version >/dev/null 2>&1; then
+      echo "OpenClaw is ready, configuring Telegram..."
+      sleep 15
+      docker exec openclaw openclaw telegram link "${telegramToken}" || true
+      sleep 10
+      docker exec openclaw openclaw channel set-access telegram open || true
+      echo "Telegram configuration complete."
+      break
+    fi
+    echo "Attempt $i/60 - waiting 5s..."
+    sleep 5
+  done
+) &
 `).toString('base64')
 
   const res = await ec2.send(

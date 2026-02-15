@@ -7,8 +7,95 @@ html {
 }
 
 body {
-  background-color: #0a0a0f;
-  color: white;
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+@layer components {
+  .comic-card {
+    @apply bg-white border-3 border-black shadow-comic;
+  }
+
+  .comic-card-hover {
+    @apply bg-white border-3 border-black shadow-comic transition-all duration-200;
+  }
+
+  .comic-card-hover:hover {
+    @apply shadow-comic-hover -translate-y-1;
+  }
+
+  .comic-btn {
+    @apply bg-brand-yellow text-black font-display font-black uppercase
+           border-3 border-black px-8 py-4 shadow-comic
+           transition-all duration-150 tracking-wide cursor-pointer;
+  }
+
+  .comic-btn:hover {
+    @apply shadow-comic-hover -translate-y-0.5 bg-brand-yellow-hover;
+  }
+
+  .comic-btn:active {
+    @apply shadow-comic-active translate-y-0.5;
+  }
+
+  .comic-btn-outline {
+    @apply bg-white text-black font-display font-bold uppercase
+           border-3 border-black px-6 py-3 shadow-comic-sm
+           transition-all duration-150 cursor-pointer;
+  }
+
+  .comic-btn-outline:hover {
+    @apply bg-brand-yellow;
+  }
+
+  .comic-heading {
+    @apply font-display font-black uppercase tracking-tight;
+  }
+
+  .comic-section {
+    @apply py-20 px-4;
+  }
+
+  .yellow-highlight {
+    @apply bg-brand-yellow px-3 py-1 inline-block;
+  }
+}
+
+.speech-bubble {
+  position: relative;
+  background: white;
+  border: 3px solid #000;
+  padding: 1rem 1.25rem;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 16px solid #000000;
+  bottom: -16px;
+  left: 28px;
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 13px solid #FFFFFF;
+  bottom: -11px;
+  left: 30px;
+  z-index: 1;
+}
+
+.avatar-comic {
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0px 0px #000;
 }
 
 @keyframes marquee {
@@ -18,14 +105,4 @@ body {
 
 .animate-marquee {
   animation: marquee 20s linear infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
-}
-
-.selected-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-  border-color: #3b82f6;
 }

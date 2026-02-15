@@ -1,14 +1,19 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { AuthProvider } from '@/components/AuthProvider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display',
+  weight: ['400', '500', '600', '700'],
+})
 
 export const metadata: Metadata = {
-  title: 'OpenClaw - Deploy Your AI Assistant in Under 1 Minute',
-  description: 'One-click deploy your own 24/7 active OpenClaw AI assistant on Telegram. No technical skills needed.',
+  title: 'OpenClaw - AI Telegram Bots That Work 24/7',
+  description: 'Deploy your own AI-powered Telegram bot in under 1 minute. Choose from Claude, GPT, or Gemini. $40/month, fully managed.',
 }
 
 export default function RootLayout({
@@ -18,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-body`}>
         <AuthProvider>
           <Navbar />
           <main>{children}</main>

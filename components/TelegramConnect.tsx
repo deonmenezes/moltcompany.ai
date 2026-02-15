@@ -21,9 +21,8 @@ export function TelegramConnect({
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
-      {/* Instructions */}
-      <div className="p-6 rounded-xl bg-dark-card border border-dark-border">
-        <h4 className="font-semibold mb-4 text-white">How to create your Telegram bot</h4>
+      <div className="comic-card p-6">
+        <h4 className="font-display font-bold mb-4 text-black uppercase">How to create your Telegram bot</h4>
         <div className="space-y-4">
           {[
             { step: '1', text: 'Open Telegram and search for @BotFather' },
@@ -33,18 +32,17 @@ export function TelegramConnect({
             { step: '5', text: 'Paste it in the field below' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-accent-blue/20 text-accent-blue text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-6 h-6 bg-brand-yellow border-2 border-black text-black text-xs font-display font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                 {item.step}
               </div>
-              <p className="text-sm text-gray-300">{item.text}</p>
+              <p className="text-sm text-brand-gray-dark">{item.text}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Input */}
-      <div className="p-6 rounded-xl bg-dark-card border border-dark-border">
-        <h4 className="font-semibold mb-4 text-white">Enter bot token</h4>
+      <div className="comic-card p-6">
+        <h4 className="font-display font-bold mb-4 text-black uppercase">Enter bot token</h4>
         <input
           type="text"
           value={value}
@@ -53,18 +51,18 @@ export function TelegramConnect({
             setSaved(false)
           }}
           placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-          className="w-full px-4 py-3 rounded-lg bg-dark-bg border border-dark-border text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue transition"
+          className="w-full px-4 py-3 border-3 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow transition"
         />
         <button
           onClick={handleSave}
           disabled={!value.trim() || !value.includes(':')}
-          className={`mt-4 w-full py-3 rounded-lg font-medium transition ${
+          className={`mt-4 w-full py-3 font-display font-bold uppercase border-3 transition ${
             saved
-              ? 'bg-green-600/20 text-green-400 border border-green-600/30'
-              : 'bg-gradient-to-r from-accent-blue to-accent-purple hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed'
+              ? 'bg-green-100 text-green-700 border-green-700'
+              : 'comic-btn disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none'
           }`}
         >
-          {saved ? 'Saved ✓' : 'Save & Connect'}
+          {saved ? 'SAVED' : 'SAVE & CONNECT'}
         </button>
       </div>
     </div>

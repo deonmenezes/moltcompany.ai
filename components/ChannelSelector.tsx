@@ -47,27 +47,27 @@ export function ChannelSelector({
           key={channel.id}
           onClick={() => channel.available && onSelect(channel.id)}
           disabled={!channel.available}
-          className={`p-6 rounded-xl border-2 transition-all duration-300 text-left relative ${
+          className={`p-6 border-3 transition-all duration-200 text-left relative ${
             !channel.available
-              ? 'border-dark-border bg-dark-card/50 opacity-50 cursor-not-allowed'
+              ? 'border-gray-300 bg-brand-gray opacity-50 cursor-not-allowed'
               : selected === channel.id
-              ? 'border-accent-blue selected-glow bg-accent-blue/10'
-              : 'border-dark-border bg-dark-card hover:border-gray-600'
+              ? 'border-black bg-brand-yellow shadow-comic'
+              : 'border-black bg-white hover:shadow-comic-sm hover:-translate-y-0.5'
           }`}
         >
           {!channel.available && (
-            <span className="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500">
+            <span className="absolute top-3 right-3 text-xs px-2 py-0.5 bg-gray-200 text-brand-gray-medium font-display font-bold uppercase">
               Coming soon
             </span>
           )}
           <div className="flex items-center gap-3">
-            <div className={selected === channel.id ? 'text-accent-blue' : 'text-gray-400'}>
+            <div className={selected === channel.id ? 'text-black' : 'text-brand-gray-medium'}>
               {channel.logo}
             </div>
-            <div className="font-semibold text-white">{channel.label}</div>
+            <div className="font-display font-bold text-black uppercase">{channel.label}</div>
           </div>
           {selected === channel.id && channel.available && (
-            <div className="text-xs text-accent-blue mt-3">Selected</div>
+            <div className="text-xs font-display font-bold text-black mt-3 uppercase">Selected</div>
           )}
         </button>
       ))}

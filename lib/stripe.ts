@@ -6,29 +6,23 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function createCheckoutSession({
   userId,
+  instanceId,
   email,
-  instanceConfig,
 }: {
   userId: string
-  email: string
-  instanceConfig: {
-    model_provider: string
-    model_name: string
-    channel: string
-    telegram_bot_token: string
-    llm_api_key: string
-  }
+  instanceId: string
+  email?: string | null
 }) {
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
-    customer_email: email,
+    ...(email ? { customer_email: email } : {}),
     line_items: [
       {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'OpenClaw AI Bot - Managed Instance',
+            name: 'MoltCompany.ai - Managed AI Companion',
             description: 'Fully managed AI Telegram bot on dedicated AWS infrastructure',
           },
           unit_amount: 4000,
@@ -39,9 +33,9 @@ export async function createCheckoutSession({
     ],
     metadata: {
       userId,
-      instanceConfig: JSON.stringify(instanceConfig),
+      instanceId,
     },
-    success_url: `${process.env.NEXTAUTH_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.NEXTAUTH_URL}/console?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXTAUTH_URL}/deploy?canceled=true`,
   })
 
@@ -51,7 +45,7 @@ export async function createCheckoutSession({
 export async function createCustomerPortalSession(customerId: string) {
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${process.env.NEXTAUTH_URL}/dashboard`,
+    return_url: `${process.env.NEXTAUTH_URL}/console`,
   })
   return session
 }

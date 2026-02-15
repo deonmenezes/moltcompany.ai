@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 import { launchInstance } from '@/lib/aws'
-import { encrypt } from '@/lib/encryption'
+import { decrypt } from '@/lib/encryption'
 import Stripe from 'stripe'
 
 export async function POST(req: NextRequest) {
@@ -22,14 +22,12 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
       const userId = session.metadata?.userId
-      const configStr = session.metadata?.instanceConfig
+      const instanceId = session.metadata?.instanceId
 
-      if (!userId || !configStr) {
+      if (!userId || !instanceId) {
         console.error('Missing metadata in checkout session')
         break
       }
-
-      const config = JSON.parse(configStr)
 
       // Save subscription
       const subscriptionId = session.subscription as string
@@ -46,36 +44,45 @@ export async function POST(req: NextRequest) {
         .update({ stripe_customer_id: session.customer as string })
         .eq('id', userId)
 
+      // Fetch pending instance config from DB
+      const { data: instance, error: fetchError } = await supabase
+        .from('instances')
+        .select('*')
+        .eq('id', instanceId)
+        .eq('user_id', userId)
+        .eq('status', 'pending_payment')
+        .single()
+
+      if (fetchError || !instance) {
+        console.error('Failed to fetch pending instance:', fetchError)
+        break
+      }
+
       // Launch EC2 instance
       try {
-        const gatewayToken = crypto.randomUUID()
-
-        const { instanceId } = await launchInstance({
+        const { instanceId: ec2InstanceId } = await launchInstance({
           userId,
-          modelProvider: config.model_provider,
-          modelName: config.model_name,
-          apiKey: config.llm_api_key,
-          telegramToken: config.telegram_bot_token,
-          gatewayToken,
+          modelProvider: instance.model_provider!,
+          modelName: instance.model_name!,
+          apiKey: decrypt(instance.llm_api_key!),
+          telegramToken: decrypt(instance.telegram_bot_token!),
+          gatewayToken: instance.gateway_token!,
+          characterFiles: instance.character_files || undefined,
         })
 
-        // Update the instance record
         await supabase
           .from('instances')
           .update({
-            ec2_instance_id: instanceId,
+            ec2_instance_id: ec2InstanceId,
             status: 'provisioning',
-            gateway_token: gatewayToken,
           })
-          .eq('user_id', userId)
-          .eq('status', 'pending_payment')
+          .eq('id', instanceId)
       } catch (err) {
         console.error('EC2 launch failed:', err)
         await supabase
           .from('instances')
           .update({ status: 'failed' })
-          .eq('user_id', userId)
-          .eq('status', 'pending_payment')
+          .eq('id', instanceId)
       }
 
       break

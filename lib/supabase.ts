@@ -36,6 +36,7 @@ export type Instance = {
   companion_role: string | null
   companion_color: string | null
   companion_avatar: string | null
+  character_files: Record<string, string> | null
 }
 
 export type Subscription = {

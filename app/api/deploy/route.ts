@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { encrypt } from '@/lib/encryption'
-import { launchInstance } from '@/lib/aws'
+import { createCheckoutSession } from '@/lib/stripe'
 import { bots } from '@/lib/bots'
 
 export async function POST(req: NextRequest) {
@@ -61,34 +61,41 @@ export async function POST(req: NextRequest) {
 
     const gatewayToken = crypto.randomUUID()
 
-    const { instanceId } = await launchInstance({
+    // Insert instance with pending_payment status (NO EC2 launch yet)
+    const { data: instance, error: insertError } = await supabase
+      .from('instances')
+      .insert({
+        user_id: user.id,
+        status: 'pending_payment',
+        model_provider,
+        model_name,
+        channel,
+        telegram_bot_token: encrypt(telegram_bot_token),
+        llm_api_key: encrypt(llm_api_key),
+        gateway_token: gatewayToken,
+        character_files: character_files || null,
+        bot_id: bot_id || null,
+        companion_name: bot?.characterName || 'Custom Companion',
+        companion_role: bot?.characterRole || 'AI Assistant',
+        companion_color: bot?.color || '#FFD600',
+        companion_avatar: bot?.avatar || null,
+      })
+      .select('id')
+      .single()
+
+    if (insertError || !instance) {
+      console.error('Instance insert error:', insertError)
+      return NextResponse.json({ error: 'Failed to create instance' }, { status: 500 })
+    }
+
+    // Create Stripe checkout session — user pays before EC2 launches
+    const session = await createCheckoutSession({
       userId: user.id,
-      modelProvider: model_provider,
-      modelName: model_name,
-      apiKey: llm_api_key,
-      telegramToken: telegram_bot_token,
-      gatewayToken,
-      characterFiles: character_files || undefined,
+      instanceId: instance.id,
+      email: authUser.email || null,
     })
 
-    await supabase.from('instances').insert({
-      user_id: user.id,
-      ec2_instance_id: instanceId,
-      status: 'provisioning',
-      model_provider,
-      model_name,
-      channel,
-      telegram_bot_token: encrypt(telegram_bot_token),
-      llm_api_key: encrypt(llm_api_key),
-      gateway_token: gatewayToken,
-      bot_id: bot_id || null,
-      companion_name: bot?.characterName || 'Custom Companion',
-      companion_role: bot?.characterRole || 'AI Assistant',
-      companion_color: bot?.color || '#FFD600',
-      companion_avatar: bot?.avatar || null,
-    })
-
-    return NextResponse.json({ redirect: '/console' })
+    return NextResponse.json({ url: session.url })
   } catch (err) {
     console.error('Deploy error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

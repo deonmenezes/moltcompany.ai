@@ -31,6 +31,7 @@ function DeployForm() {
   const { user, session, loading } = useAuth()
   const searchParams = useSearchParams()
   const botParam = searchParams.get('model')
+  const canceled = searchParams.get('canceled') === 'true'
 
   const hasPreselected = !!bots.find(b => b.id === botParam)
   const initialBot = bots.find(b => b.id === botParam) || bots[0]
@@ -167,6 +168,15 @@ function DeployForm() {
             <p className="text-xs font-display font-bold text-brand-gray-medium uppercase">{selectedBot.characterRole}</p>
           </div>
         </div>
+
+        {/* Payment canceled banner */}
+        {canceled && (
+          <div className="mb-6 p-4 border-3 border-black bg-red-50">
+            <p className="font-display font-bold text-sm text-red-700">
+              PAYMENT CANCELED &mdash; Your companion has not been deployed. You can try again below.
+            </p>
+          </div>
+        )}
 
         {/* Progress bar */}
         <div className="mb-10">

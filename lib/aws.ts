@@ -162,6 +162,13 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
     "auth": {
       "mode": "token"
     }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
   }
 }
 CONFIGEOF

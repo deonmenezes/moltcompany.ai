@@ -6,14 +6,17 @@ import { createCustomerPortalSession } from '@/lib/stripe'
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getUser(req)
-    if (!authUser?.email) {
+    if (!authUser?.email && !authUser?.phone) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const lookupField = authUser.email ? 'email' : 'phone'
+    const lookupValue = (authUser.email || authUser.phone)!
 
     const { data: user } = await supabase
       .from('users')
       .select('stripe_customer_id')
-      .eq('email', authUser.email)
+      .eq(lookupField, lookupValue)
       .maybeSingle()
 
     if (!user?.stripe_customer_id) {

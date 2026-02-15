@@ -12,11 +12,12 @@ export function BotCard({ bot }: { bot: Bot }) {
     <div className="comic-card-hover flex flex-col">
       <div className="h-2" style={{ backgroundColor: bot.color }} />
 
-      <div className="p-6 pb-2 flex flex-col items-center text-center">
-        {imgError ? (
+      {/* Clickable area → detail page */}
+      <Link href={`/companion/${bot.id}`} className="p-6 pb-2 flex flex-col items-center text-center hover:bg-gray-50/50 transition">
+        {!bot.avatar || imgError ? (
           <div
-            className="w-20 h-20 rounded-full avatar-comic bg-brand-gray flex items-center justify-center mb-3"
-            style={{ borderColor: bot.color }}
+            className="w-20 h-20 rounded-full avatar-comic flex items-center justify-center mb-3"
+            style={{ backgroundColor: `${bot.color}30`, borderColor: bot.color }}
           >
             <span className="font-display font-black text-2xl text-black">
               {bot.characterName.charAt(0)}
@@ -39,26 +40,34 @@ export function BotCard({ bot }: { bot: Bot }) {
         >
           {bot.characterRole}
         </span>
-      </div>
 
-      <div className="px-6 pt-4">
-        <div className="border-t-2 border-dashed border-brand-gray-medium" />
-        <p className="font-body text-sm text-brand-gray-dark text-center mt-3">
-          {bot.tagline}
-        </p>
-      </div>
+        <div className="w-full mt-4">
+          <div className="border-t-2 border-dashed border-brand-gray-medium" />
+          <p className="font-body text-sm text-brand-gray-dark text-center mt-3">
+            {bot.tagline}
+          </p>
+        </div>
+      </Link>
 
       <div className="p-6 pt-4 mt-auto">
         <div className="flex items-baseline justify-center gap-2 mb-4">
           <span className="comic-heading text-3xl">$40</span>
           <span className="text-brand-gray-medium font-medium text-sm">/month</span>
         </div>
-        <Link
-          href={`/deploy?model=${bot.id}`}
-          className="comic-btn block text-center w-full text-sm"
-        >
-          DEPLOY {bot.characterName}
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={`/companion/${bot.id}`}
+            className="comic-btn-outline block text-center flex-1 text-sm"
+          >
+            VIEW DETAILS
+          </Link>
+          <Link
+            href={`/deploy?model=${bot.id}`}
+            className="comic-btn block text-center flex-1 text-sm"
+          >
+            HIRE
+          </Link>
+        </div>
       </div>
     </div>
   )

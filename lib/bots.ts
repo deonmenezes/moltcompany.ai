@@ -1,5 +1,5 @@
 export const categories = [
-  { id: 'all', label: 'All Bots' },
+  { id: 'all', label: 'All Companions' },
   { id: 'leadership', label: 'Leadership' },
   { id: 'engineering', label: 'Engineering' },
   { id: 'operations', label: 'Operations' },
@@ -10,24 +10,16 @@ export type Category = typeof categories[number]['id']
 export const bots = [
   {
     id: 'bob-ceo',
-    provider: 'anthropic',
-    modelName: 'anthropic/claude-opus-4-5-20250514',
-    label: 'Claude Opus 4.5',
-    company: 'Anthropic',
     characterName: 'BOB',
     characterRole: 'CEO',
     category: 'leadership' as Category,
-    avatar: '/avatars/bob.png',
+    avatar: null as string | null,
     tagline: 'Leads strategy, sets vision, and makes the hard calls',
     description: 'Your AI chief executive. Bob synthesizes data, drafts strategic plans, and keeps every department aligned.',
     color: '#FFD600',
   },
   {
     id: 'specter-legal',
-    provider: 'anthropic',
-    modelName: 'anthropic/claude-opus-4-5-20250514',
-    label: 'Claude Opus 4.5',
-    company: 'Anthropic',
     characterName: 'SPECTER',
     characterRole: 'LEGAL ADVISOR',
     category: 'leadership' as Category,
@@ -38,10 +30,6 @@ export const bots = [
   },
   {
     id: 'caroline-sales',
-    provider: 'openai',
-    modelName: 'openai/gpt-5.2',
-    label: 'GPT-5.2',
-    company: 'OpenAI',
     characterName: 'CAROLINE',
     characterRole: 'SALES LEAD',
     category: 'leadership' as Category,
@@ -52,10 +40,6 @@ export const bots = [
   },
   {
     id: 'harsh-dev',
-    provider: 'google',
-    modelName: 'google/gemini-3-flash',
-    label: 'Gemini 3 Flash',
-    company: 'Google',
     characterName: 'HARSH',
     characterRole: 'DEVELOPER',
     category: 'engineering' as Category,
@@ -66,10 +50,6 @@ export const bots = [
   },
   {
     id: 'sean-ai',
-    provider: 'google',
-    modelName: 'google/gemini-3-flash',
-    label: 'Gemini 3 Flash',
-    company: 'Google',
     characterName: 'SEAN',
     characterRole: 'AI ENGINEER',
     category: 'engineering' as Category,
@@ -80,10 +60,6 @@ export const bots = [
   },
   {
     id: 'christopher-sec',
-    provider: 'anthropic',
-    modelName: 'anthropic/claude-opus-4-5-20250514',
-    label: 'Claude Opus 4.5',
-    company: 'Anthropic',
     characterName: 'CHRISTOPHER',
     characterRole: 'CYBERSEC / PENTESTER',
     category: 'engineering' as Category,
@@ -94,10 +70,6 @@ export const bots = [
   },
   {
     id: 'amy-hr',
-    provider: 'openai',
-    modelName: 'openai/gpt-5.2',
-    label: 'GPT-5.2',
-    company: 'OpenAI',
     characterName: 'AMY',
     characterRole: 'HR SPECIALIST',
     category: 'operations' as Category,
@@ -108,10 +80,6 @@ export const bots = [
   },
   {
     id: 'xavier-data',
-    provider: 'openai',
-    modelName: 'openai/gpt-5.2',
-    label: 'GPT-5.2',
-    company: 'OpenAI',
     characterName: 'XAVIER',
     characterRole: 'DATA ANALYST',
     category: 'operations' as Category,
@@ -122,10 +90,6 @@ export const bots = [
   },
   {
     id: 'walter-finance',
-    provider: 'google',
-    modelName: 'google/gemini-3-flash',
-    label: 'Gemini 3 Flash',
-    company: 'Google',
     characterName: 'WALTER',
     characterRole: 'FINANCE',
     category: 'operations' as Category,
@@ -134,7 +98,7 @@ export const bots = [
     description: 'Your AI CFO. Walter tracks expenses, forecasts revenue, and keeps your finances razor-sharp.',
     color: '#8B5CF6',
   },
-] as const
+]
 
 export type Bot = typeof bots[number]
 
@@ -142,13 +106,13 @@ export const testimonials = [
   {
     name: 'Marcus Chen',
     role: 'Founder, TechStart',
-    quote: 'Deployed our support bot in 45 seconds. It handles 80% of customer questions now.',
+    quote: 'Deployed our support companion in 45 seconds. It handles 80% of customer questions now.',
     stars: 5,
   },
   {
     name: 'Sarah Mitchell',
     role: 'Marketing Director',
-    quote: 'Our AI bot drafts social posts and replies to DMs. Saved us 20 hours a week.',
+    quote: 'Our AI companion drafts social posts and replies to DMs. Saved us 20 hours a week.',
     stars: 5,
   },
   {
@@ -160,13 +124,13 @@ export const testimonials = [
   {
     name: 'Elena Rodriguez',
     role: 'Agency Owner',
-    quote: 'Set up bots for 3 clients in one afternoon. Each one pays for itself 10x over.',
+    quote: 'Set up companions for 3 clients in one afternoon. Each one pays for itself 10x over.',
     stars: 5,
   },
   {
     name: 'James Turner',
     role: 'E-commerce Manager',
-    quote: 'Best $40 I spend each month. The bot handles order questions 24/7.',
+    quote: 'Best $40 I spend each month. The companion handles order questions 24/7.',
     stars: 4,
   },
 ]

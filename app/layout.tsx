@@ -12,8 +12,11 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'OpenClaw - AI Telegram Bots That Work 24/7',
-  description: 'Deploy your own AI-powered Telegram bot in under 1 minute. Choose from Claude, GPT, or Gemini. $40/month, fully managed.',
+  title: 'MoltCompany.ai - AI Companions That Work 24/7',
+  description: 'Hire your own AI companion in under 60 seconds. Choose from Claude, GPT, Gemini, Kimi, or MiniMax. $40/month, fully managed on dedicated servers.',
+  icons: {
+    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦞</text></svg>',
+  },
 }
 
 export default function RootLayout({

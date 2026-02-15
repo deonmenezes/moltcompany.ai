@@ -9,6 +9,8 @@ type AuthContextType = {
   session: Session | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
+  signInWithPhone: (phone: string) => Promise<{ error: string | null }>
+  verifyPhoneOtp: (phone: string, token: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
 
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signInWithGoogle: async () => {},
+  signInWithPhone: async () => ({ error: null }),
+  verifyPhoneOtp: async () => ({ error: null }),
   signOut: async () => {},
 })
 
@@ -52,12 +56,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
+  const signInWithPhone = async (phone: string) => {
+    const { error } = await supabaseBrowser.auth.signInWithOtp({ phone })
+    return { error: error?.message ?? null }
+  }
+
+  const verifyPhoneOtp = async (phone: string, token: string) => {
+    const { error } = await supabaseBrowser.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
+    })
+    return { error: error?.message ?? null }
+  }
+
   const signOut = async () => {
     await supabaseBrowser.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signInWithPhone, verifyPhoneOtp, signOut }}>
       {children}
     </AuthContext.Provider>
   )

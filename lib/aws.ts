@@ -17,6 +17,8 @@ const MODEL_ENV_MAP: Record<string, string> = {
   anthropic: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
   google: 'GEMINI_API_KEY',
+  kimi: 'MOONSHOT_API_KEY',
+  minimax: 'MINIMAX_API_KEY',
 }
 
 async function getOrCreateSecurityGroup(): Promise<string> {
@@ -256,8 +258,8 @@ docker run -d \
         {
           ResourceType: 'instance',
           Tags: [
-            { Key: 'Name', Value: `openclaw-${userId.slice(0, 8)}` },
-            { Key: 'ManagedBy', Value: 'openclaw-platform' },
+            { Key: 'Name', Value: `moltcompany-${userId.slice(0, 8)}` },
+            { Key: 'ManagedBy', Value: 'moltcompany-platform' },
             { Key: 'UserId', Value: userId },
           ],
         },

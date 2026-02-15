@@ -8,7 +8,8 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export type User = {
   id: string
-  email: string
+  email: string | null
+  phone: string | null
   name: string | null
   google_id: string | null
   stripe_customer_id: string | null
@@ -30,6 +31,11 @@ export type Instance = {
   region: string
   created_at: string
   last_health_check: string | null
+  bot_id: string | null
+  companion_name: string | null
+  companion_role: string | null
+  companion_color: string | null
+  companion_avatar: string | null
 }
 
 export type Subscription = {

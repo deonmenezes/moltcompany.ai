@@ -1,24 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-
-const providerInfo: Record<string, { label: string; placeholder: string; helpUrl: string }> = {
-  anthropic: {
-    label: 'Anthropic API Key',
-    placeholder: 'sk-ant-...',
-    helpUrl: 'https://console.anthropic.com/settings/keys',
-  },
-  openai: {
-    label: 'OpenAI API Key',
-    placeholder: 'sk-...',
-    helpUrl: 'https://platform.openai.com/api-keys',
-  },
-  google: {
-    label: 'Google AI API Key',
-    placeholder: 'AIza...',
-    helpUrl: 'https://aistudio.google.com/app/apikey',
-  },
-}
+import { llmProviders } from '@/lib/providers'
 
 export function ApiKeyInput({
   provider,
@@ -31,12 +14,12 @@ export function ApiKeyInput({
 }) {
   const [value, setValue] = useState(apiKey)
   const [saved, setSaved] = useState(!!apiKey)
-  const info = providerInfo[provider] || providerInfo.anthropic
+  const info = llmProviders.find(p => p.id === provider) || llmProviders[0]
 
   return (
     <div className="max-w-lg">
       <div className="comic-card p-6">
-        <h4 className="font-display font-bold mb-1 text-black uppercase">Enter your {info.label}</h4>
+        <h4 className="font-display font-bold mb-1 text-black uppercase">Enter your {info.name} API Key</h4>
         <p className="text-sm text-brand-gray-medium mb-4">
           Your key is encrypted before storage and only used by your instance.
         </p>
@@ -47,7 +30,7 @@ export function ApiKeyInput({
             setValue(e.target.value)
             setSaved(false)
           }}
-          placeholder={info.placeholder}
+          placeholder={info.keyPlaceholder}
           className="w-full px-4 py-3 border-3 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow transition"
         />
         <button
@@ -67,12 +50,12 @@ export function ApiKeyInput({
           {saved ? 'SAVED' : 'SAVE API KEY'}
         </button>
         <a
-          href={info.helpUrl}
+          href={info.keyHelpUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="block mt-3 text-sm text-black font-bold underline hover:text-brand-gray-dark"
         >
-          How to get your API key &rarr;
+          How to get your {info.name} API key &rarr;
         </a>
       </div>
     </div>

@@ -6,57 +6,55 @@ import { getInstancePublicIp, getInstanceState, stopInstance, startInstance, ter
 export async function GET(req: NextRequest) {
   try {
     const authUser = await getUser(req)
-    if (!authUser?.email) {
+    if (!authUser?.email && !authUser?.phone) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const lookupField = authUser.email ? 'email' : 'phone'
+    const lookupValue = (authUser.email || authUser.phone)!
 
     const { data: user } = await supabase
       .from('users')
       .select('id, stripe_customer_id')
-      .eq('email', authUser.email)
+      .eq(lookupField, lookupValue)
       .maybeSingle()
 
     if (!user) {
-      return NextResponse.json({ instance: null })
+      return NextResponse.json({ instances: [], subscription: null })
     }
 
-    const { data: instance } = await supabase
+    const { data: instances } = await supabase
       .from('instances')
       .select('*')
       .eq('user_id', user.id)
+      .not('status', 'in', '("terminated","payment_failed")')
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
 
-    if (!instance) {
-      return NextResponse.json({ instance: null })
-    }
-
-    if (instance.ec2_instance_id) {
-      try {
-        const [ip, state] = await Promise.all([
-          getInstancePublicIp(instance.ec2_instance_id),
-          getInstanceState(instance.ec2_instance_id),
-        ])
-
-        const newStatus = state === 'running' ? 'running' : state === 'stopped' ? 'stopped' : instance.status
-
-        if (ip !== instance.public_ip || newStatus !== instance.status) {
-          await supabase
-            .from('instances')
-            .update({
-              public_ip: ip,
-              status: newStatus,
-              last_health_check: new Date().toISOString(),
-            })
-            .eq('id', instance.id)
-        }
-
-        instance.public_ip = ip
-        instance.status = newStatus
-      } catch {
-        // AWS call failed, return cached data
-      }
+    // Sync AWS state for running/provisioning instances
+    if (instances?.length) {
+      await Promise.allSettled(
+        instances
+          .filter(i => i.ec2_instance_id && ['running', 'provisioning'].includes(i.status))
+          .map(async (instance) => {
+            try {
+              const [ip, state] = await Promise.all([
+                getInstancePublicIp(instance.ec2_instance_id!),
+                getInstanceState(instance.ec2_instance_id!),
+              ])
+              const newStatus = state === 'running' ? 'running' : state === 'stopped' ? 'stopped' : instance.status
+              if (ip !== instance.public_ip || newStatus !== instance.status) {
+                await supabase
+                  .from('instances')
+                  .update({ public_ip: ip, status: newStatus, last_health_check: new Date().toISOString() })
+                  .eq('id', instance.id)
+              }
+              instance.public_ip = ip
+              instance.status = newStatus
+            } catch {
+              // AWS call failed, return cached data
+            }
+          })
+      )
     }
 
     const { data: subscription } = await supabase
@@ -68,11 +66,11 @@ export async function GET(req: NextRequest) {
       .maybeSingle()
 
     return NextResponse.json({
-      instance: {
-        ...instance,
+      instances: (instances || []).map(i => ({
+        ...i,
         telegram_bot_token: undefined,
         llm_api_key: undefined,
-      },
+      })),
       subscription,
       stripeCustomerId: user.stripe_customer_id,
     })
@@ -85,31 +83,36 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const authUser = await getUser(req)
-    if (!authUser?.email) {
+    if (!authUser?.email && !authUser?.phone) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { action } = await req.json()
+    const { action, instance_id } = await req.json()
+
+    if (!instance_id) {
+      return NextResponse.json({ error: 'instance_id required' }, { status: 400 })
+    }
+
+    const lookupField = authUser.email ? 'email' : 'phone'
+    const lookupValue = (authUser.email || authUser.phone)!
 
     const { data: user } = await supabase
       .from('users')
       .select('id')
-      .eq('email', authUser.email)
+      .eq(lookupField, lookupValue)
       .maybeSingle()
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const { data: instances } = await supabase
+    const { data: instance } = await supabase
       .from('instances')
       .select('ec2_instance_id, status')
+      .eq('id', instance_id)
       .eq('user_id', user.id)
       .in('status', ['running', 'stopped', 'provisioning'])
-      .order('created_at', { ascending: false })
-      .limit(1)
-
-    const instance = instances?.[0]
+      .maybeSingle()
 
     if (!instance?.ec2_instance_id) {
       return NextResponse.json({ error: 'No active instance' }, { status: 404 })
@@ -120,13 +123,13 @@ export async function PATCH(req: NextRequest) {
       await supabase
         .from('instances')
         .update({ status: 'stopped' })
-        .eq('ec2_instance_id', instance.ec2_instance_id)
+        .eq('id', instance_id)
     } else if (action === 'start') {
       await startInstance(instance.ec2_instance_id)
       await supabase
         .from('instances')
         .update({ status: 'running' })
-        .eq('ec2_instance_id', instance.ec2_instance_id)
+        .eq('id', instance_id)
     }
 
     return NextResponse.json({ success: true })
@@ -139,35 +142,41 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const authUser = await getUser(req)
-    if (!authUser?.email) {
+    if (!authUser?.email && !authUser?.phone) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const { instance_id } = await req.json()
+
+    if (!instance_id) {
+      return NextResponse.json({ error: 'instance_id required' }, { status: 400 })
+    }
+
+    const lookupField = authUser.email ? 'email' : 'phone'
+    const lookupValue = (authUser.email || authUser.phone)!
 
     const { data: user } = await supabase
       .from('users')
       .select('id')
-      .eq('email', authUser.email)
+      .eq(lookupField, lookupValue)
       .maybeSingle()
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const { data: instances } = await supabase
+    const { data: instance } = await supabase
       .from('instances')
       .select('ec2_instance_id, id')
+      .eq('id', instance_id)
       .eq('user_id', user.id)
       .in('status', ['running', 'stopped', 'provisioning'])
-      .order('created_at', { ascending: false })
-      .limit(1)
-
-    const instance = instances?.[0]
+      .maybeSingle()
 
     if (!instance) {
       return NextResponse.json({ error: 'No active instance' }, { status: 404 })
     }
 
-    // Terminate EC2 instance if it exists
     if (instance.ec2_instance_id) {
       try {
         await terminateInstance(instance.ec2_instance_id)
@@ -176,7 +185,6 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    // Update status in database
     await supabase
       .from('instances')
       .update({ status: 'terminated' })

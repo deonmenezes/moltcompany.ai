@@ -207,23 +207,25 @@ docker run -d \
   -e BROWSER_EVALUATE_ENABLED=true \
   -e ${apiKeyEnvVar}="${apiKey}" \
   -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
+  -e TELEGRAM_DM_POLICY=open \
+  -e TELEGRAM_ALLOW_FROM='*' \
+  -e TELEGRAM_ACTIONS_REACTIONS=true \
+  -e TELEGRAM_ACTIONS_STICKER=true \
   -e OPENCLAW_PRIMARY_MODEL="${modelName}" \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \
   -e AUTH_USERNAME="admin" \
   -e AUTH_PASSWORD="${gatewayToken}" \
   coollabsio/openclaw:latest
 
-# Wait for openclaw container to be ready, then configure Telegram via CLI only
+# Wait for openclaw container to be ready, then link Telegram bot
 (
   echo "Waiting for openclaw container to be ready..."
   for i in $(seq 1 60); do
     if docker exec openclaw openclaw --version >/dev/null 2>&1; then
-      echo "OpenClaw is ready, configuring Telegram..."
+      echo "OpenClaw is ready, linking Telegram..."
       sleep 15
       docker exec openclaw openclaw telegram link "${telegramToken}" || true
-      sleep 10
-      docker exec openclaw openclaw channel set-access telegram open || true
-      echo "Telegram configuration complete."
+      echo "Telegram link complete."
       break
     fi
     echo "Attempt $i/60 - waiting 5s..."

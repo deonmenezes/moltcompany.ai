@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CharacterEditor } from '@/components/CharacterEditor'
+import { PhoneInput } from '@/components/PhoneInput'
 import { CHARACTER_FILE_NAMES, type CharacterFiles } from '@/lib/character-files'
 
 const COLOR_PALETTE = [
@@ -643,13 +644,7 @@ export default function CreateCompanionPage() {
 
                   {phoneStep === 'enter' && (
                     <div className="space-y-3">
-                      <input
-                        type="tel"
-                        value={phoneInput}
-                        onChange={(e) => setPhoneInput(e.target.value)}
-                        placeholder="+1 234 567 8900"
-                        className="w-full border-3 border-black px-4 py-3 font-body text-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow"
-                      />
+                      <PhoneInput value={phoneInput} onChange={setPhoneInput} />
                       {phoneError && <p className="text-red-600 text-sm font-body font-medium">{phoneError}</p>}
                       <button
                         onClick={async () => {

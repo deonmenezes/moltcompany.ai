@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/components/AuthProvider'
+import { PhoneInput } from '@/components/PhoneInput'
 
 type AuthStep = 'choose' | 'phone-enter' | 'phone-verify'
 
@@ -126,14 +127,7 @@ export default function LoginPage() {
                 We&apos;ll send a 6-digit verification code via SMS
               </p>
 
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 234 567 8900"
-                className="w-full border-3 border-black px-4 py-3 font-body text-lg focus:outline-none focus:ring-2 focus:ring-brand-yellow"
-                autoFocus
-              />
+              <PhoneInput value={phone} onChange={setPhone} autoFocus />
 
               {error && (
                 <p className="text-red-600 text-sm font-body font-medium">{error}</p>

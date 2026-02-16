@@ -60,6 +60,9 @@ export function Navbar() {
               <Link href="/companions" className={`font-display text-sm font-bold uppercase transition ${isActive('/companions') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                 Explore
               </Link>
+              <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                Support
+              </Link>
               <Link href="/create" className="comic-btn text-sm py-1.5 px-4 no-underline">
                 + CREATE
               </Link>
@@ -86,6 +89,9 @@ export function Navbar() {
               </Link>
               <Link href="/companions" className={`font-display text-sm font-bold uppercase transition ${isActive('/companions') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                 Explore
+              </Link>
+              <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                Support
               </Link>
               <Link
                 href="/login"
@@ -143,6 +149,7 @@ export function Navbar() {
               <MobileNavLink href="/community" label="Community" active={isActive('/community')} icon="users" />
               <MobileNavLink href="/companions" label="Explore" active={isActive('/companions')} icon="compass" />
               <MobileNavLink href="/create" label="Create Companion" active={isActive('/create')} icon="plus" />
+              <MobileNavLink href="/support" label="Support" active={isActive('/support')} icon="help" />
               <MobileNavLink href="/profile" label="Profile" active={isActive('/profile')} icon="user" />
 
               <div className="pt-4 mt-4 border-t-2 border-black/10">
@@ -158,6 +165,7 @@ export function Navbar() {
             <>
               <MobileNavLink href="/community" label="Community" active={isActive('/community')} icon="users" />
               <MobileNavLink href="/companions" label="Explore" active={isActive('/companions')} icon="compass" />
+              <MobileNavLink href="/support" label="Support" active={isActive('/support')} icon="help" />
               <div className="pt-4 mt-4 border-t-2 border-black/10">
                 <Link href="/login" className="comic-btn block text-center w-full text-sm" onClick={() => setMobileOpen(false)}>
                   SIGN IN
@@ -178,6 +186,7 @@ function MobileNavLink({ href, label, active, icon }: { href: string; label: str
     compass: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
     plus: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
     user: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    help: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
   }
 
   return (

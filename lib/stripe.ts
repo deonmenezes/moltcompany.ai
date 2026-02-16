@@ -8,11 +8,15 @@ export async function createCheckoutSession({
   userId,
   instanceId,
   email,
+  origin,
 }: {
   userId: string
   instanceId: string
   email?: string | null
+  origin: string
 }) {
+  const baseUrl = origin || process.env.NEXTAUTH_URL || 'https://moltcompany.ai'
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
@@ -35,17 +39,19 @@ export async function createCheckoutSession({
       userId,
       instanceId,
     },
-    success_url: `${process.env.NEXTAUTH_URL}/console?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXTAUTH_URL}/deploy?canceled=true`,
+    success_url: `${baseUrl}/console?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${baseUrl}/deploy?canceled=true`,
   })
 
   return session
 }
 
-export async function createCustomerPortalSession(customerId: string) {
+export async function createCustomerPortalSession(customerId: string, origin?: string) {
+  const baseUrl = origin || process.env.NEXTAUTH_URL || 'https://moltcompany.ai'
+
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${process.env.NEXTAUTH_URL}/console`,
+    return_url: `${baseUrl}/console`,
   })
   return session
 }

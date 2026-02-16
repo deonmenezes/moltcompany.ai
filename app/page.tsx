@@ -40,9 +40,9 @@ export default function LandingPage() {
       <section className="pt-16 pb-20 px-4 border-b-3 border-black">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="comic-heading text-5xl md:text-7xl lg:text-8xl mb-6 leading-[0.95]">
-            YOUR OWN<br />
-            <span className="yellow-highlight">AI EMPLOYEE</span><br />
-            IN 60 SECONDS
+            WORLDS FIRST<br />
+            <span className="yellow-highlight">OPENCLAW MARKETPLACE</span><br />
+            DEPLOY ANY BOT IN 60 SECONDS
           </h1>
           <p className="text-xl text-brand-gray-dark mb-8 max-w-2xl mx-auto font-body">
             Pick a companion. Connect Telegram. Deploy. Your AI employee works 24/7 so you don&apos;t have to.
@@ -239,6 +239,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-brand-gray-medium">
                 <li><Link href="/profile" className="hover:text-black transition">Profile</Link></li>
                 <li><Link href="/login" className="hover:text-black transition">Sign In</Link></li>
+                <li><Link href="/support" className="hover:text-black transition">Support</Link></li>
                 <li><Link href="/terms" className="hover:text-black transition">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="hover:text-black transition">Privacy Policy</Link></li>
               </ul>

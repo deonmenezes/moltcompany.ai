@@ -108,10 +108,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Create Stripe checkout session — user pays before EC2 launches
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || ''
     const session = await createCheckoutSession({
       userId: user.id,
       instanceId: instance.id,
       email: authUser.email || null,
+      origin,
     })
 
     return NextResponse.json({ url: session.url })

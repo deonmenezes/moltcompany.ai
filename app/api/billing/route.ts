@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
     }
 
-    const portalSession = await createCustomerPortalSession(user.stripe_customer_id)
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || ''
+    const portalSession = await createCustomerPortalSession(user.stripe_customer_id, origin)
     return NextResponse.json({ url: portalSession.url })
   } catch (err) {
     console.error('Billing portal error:', err)

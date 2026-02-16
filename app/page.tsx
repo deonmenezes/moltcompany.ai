@@ -1,10 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { BotGrid } from '@/components/BotGrid'
-import { TestimonialCard } from '@/components/TestimonialCard'
-import { testimonials } from '@/lib/bots'
 import { useAuth } from '@/components/AuthProvider'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -39,9 +36,9 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="pt-16 pb-20 px-4 border-b-3 border-black">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="comic-heading text-5xl md:text-7xl lg:text-8xl mb-6 leading-[0.95]">
+          <h1 className="comic-heading text-5xl md:text-7xl lg:text-4xl mb-6 leading-[0.95]">
             WORLDS FIRST<br />
-            <span className="yellow-highlight">OPENCLAW MARKETPLACE</span><br />
+            <span className="yellow-highlight">OPENCLAW MARKETPLACE 🦞</span><br />
             DEPLOY ANY BOT IN 60 SECONDS
           </h1>
           <p className="text-xl text-brand-gray-dark mb-8 max-w-2xl mx-auto font-body">
@@ -50,21 +47,18 @@ export default function LandingPage() {
           <Link href="/companions" className="comic-btn text-lg inline-block">
             HIRE YOUR COMPANION
           </Link>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <div className="flex">
-              {['amy', 'caroline', 'christopher', 'sean'].map((name) => (
-                <Image
-                  key={name}
-                  src={`/avatars/${name}.png`}
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="rounded-full border-2 border-black -ml-2 first:ml-0"
-                />
-              ))}
-            </div>
-            <div className="flex gap-0.5 text-brand-yellow text-lg">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <span className="text-sm font-bold text-black">Trusted by 500+ businesses</span>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 md:gap-8">
+            {[
+              { icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>', text: 'End-to-End Encrypted' },
+              { icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', text: 'Secure Infrastructure' },
+              { icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', text: 'Deploy in 60 Seconds' },
+              { icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', text: '24/7 Support' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-8 h-8 border-2 border-black bg-brand-yellow flex items-center justify-center" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                <span className="text-sm font-display font-bold uppercase">{item.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -145,24 +139,44 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* TRUST & SECURITY */}
       <section className="comic-section bg-brand-gray border-b-3 border-black">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h2 className="comic-heading text-4xl md:text-5xl text-center mb-2">
-            EMPLOYEE OF THE MONTH.
+            BUILT FOR SECURITY.
           </h2>
           <p className="comic-heading text-3xl md:text-4xl text-center mb-12">
-            <span className="yellow-highlight">EVERY MONTH.</span>
+            <span className="yellow-highlight">DESIGNED FOR SIMPLICITY.</span>
           </p>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.slice(0, 3).map((t) => (
-              <TestimonialCard key={t.name} {...t} />
-            ))}
-          </div>
-          <div className="grid md:grid-cols-2 gap-6 mt-6 max-w-4xl mx-auto">
-            {testimonials.slice(3).map((t) => (
-              <TestimonialCard key={t.name} {...t} />
-            ))}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="comic-card p-6">
+              <div className="w-12 h-12 border-3 border-black bg-brand-yellow flex items-center justify-center mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <h3 className="font-display font-bold text-lg uppercase mb-2">End-to-End Encrypted</h3>
+              <p className="text-sm text-brand-gray-dark font-body">All API keys and bot tokens are encrypted with AES-256-GCM before storage. Your credentials never touch our servers in plain text.</p>
+            </div>
+            <div className="comic-card p-6">
+              <div className="w-12 h-12 border-3 border-black bg-brand-yellow flex items-center justify-center mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <h3 className="font-display font-bold text-lg uppercase mb-2">Dedicated Infrastructure</h3>
+              <p className="text-sm text-brand-gray-dark font-body">Each companion runs on its own isolated AWS EC2 instance. No shared servers, no data leaks between users.</p>
+            </div>
+            <div className="comic-card p-6">
+              <div className="w-12 h-12 border-3 border-black bg-brand-yellow flex items-center justify-center mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <h3 className="font-display font-bold text-lg uppercase mb-2">Easy to Set Up</h3>
+              <p className="text-sm text-brand-gray-dark font-body">Pick a companion, paste your Telegram bot token, and deploy. No coding, no DevOps, no configuration files. Live in under 60 seconds.</p>
+            </div>
+            <div className="comic-card p-6">
+              <div className="w-12 h-12 border-3 border-black bg-brand-yellow flex items-center justify-center mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3 className="font-display font-bold text-lg uppercase mb-2">24/7 Support</h3>
+              <p className="text-sm text-brand-gray-dark font-body">Our team is available around the clock via email, phone, and social media. If something breaks, we fix it fast.</p>
+            </div>
           </div>
         </div>
       </section>

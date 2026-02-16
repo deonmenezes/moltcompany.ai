@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('community_bots')
-    .select('id, name, bot_name, description, icon_url, author_name, role, color, upvotes, downvotes, character_file, soul_md, created_at, category, tags, view_count, deploy_count, fork_count')
+    .select('id, name, bot_name, description, icon_url, author_name, bot_role, color, upvotes, downvotes, character_file, soul_md, created_at, category, likes, deploys')
     .eq('status', 'published')
 
   // Search by name, description, or role
@@ -34,10 +34,10 @@ export async function GET(req: NextRequest) {
       query = query.order('upvotes', { ascending: false }).order('created_at', { ascending: false })
       break
     case 'most_deployed':
-      query = query.order('deploy_count', { ascending: false })
+      query = query.order('deploys', { ascending: false })
       break
     case 'most_viewed':
-      query = query.order('view_count', { ascending: false })
+      query = query.order('likes', { ascending: false })
       break
     default:
       query = query.order('created_at', { ascending: false })
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
 
-    const { name, description, icon_url, character_file, role, color, tools_config, category, tags } = await req.json()
+    const { name, description, icon_url, character_file, role, color, category } = await req.json()
 
     if (!name?.trim() || !character_file?.trim()) {
       return NextResponse.json(
@@ -131,11 +131,6 @@ export async function POST(req: NextRequest) {
     const validCategories = ['productivity', 'creative', 'business', 'education', 'entertainment', 'developer', 'health', 'social', 'finance', 'other']
     const safeCategory = validCategories.includes(category) ? category : 'other'
 
-    // Validate tags (array of strings, max 5)
-    const safeTags = Array.isArray(tags)
-      ? tags.filter((t: unknown) => typeof t === 'string').slice(0, 5).map((t: string) => t.toLowerCase().trim().slice(0, 30))
-      : []
-
     const { data: bot, error } = await supabase
       .from('community_bots')
       .insert({
@@ -148,16 +143,13 @@ export async function POST(req: NextRequest) {
         icon_url: sanitizeUrl(icon_url),
         character_file: character_file.slice(0, 10000),
         soul_md: character_file.slice(0, 10000),
-        role: (role || '').slice(0, 60) || null,
+        bot_role: (role || '').slice(0, 60) || null,
         color: safeColor,
-        tools_config: tools_config ? JSON.stringify(tools_config) : null,
         category: safeCategory,
-        tags: safeTags,
         upvotes: 0,
         downvotes: 0,
-        view_count: 0,
-        deploy_count: 0,
-        fork_count: 0,
+        deploys: 0,
+        likes: 0,
         status: 'published',
       })
       .select()

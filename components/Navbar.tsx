@@ -55,6 +55,9 @@ export function Navbar() {
                 <Link href="/sell" className={`font-display text-sm font-bold uppercase transition ${isActive('/sell') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                   Sell
                 </Link>
+                <Link href="/docs" className={`font-display text-sm font-bold uppercase transition ${isActive('/docs') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                  Docs
+                </Link>
                 <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                   Support
                 </Link>
@@ -90,6 +93,9 @@ export function Navbar() {
                 </Link>
                 <Link href="/sell" className={`font-display text-sm font-bold uppercase transition ${isActive('/sell') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                   Sell
+                </Link>
+                <Link href="/docs" className={`font-display text-sm font-bold uppercase transition ${isActive('/docs') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                  Docs
                 </Link>
                 <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                   Support

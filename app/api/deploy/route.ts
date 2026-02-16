@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { encrypt } from '@/lib/encryption'
 import { createCheckoutSession } from '@/lib/stripe'
 import { bots } from '@/lib/bots'
+import { rateLimit } from '@/lib/sanitize'
+import { llmProviders } from '@/lib/providers'
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,11 +14,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Rate limit: 5 deploy attempts per minute
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const { success: rateLimitOk } = rateLimit(`deploy:${ip}`, { maxRequests: 5, windowMs: 60_000 })
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+    }
+
     const body = await req.json()
     const { model_provider, model_name, channel, telegram_bot_token, llm_api_key, character_files, bot_id } = body
 
     if (!model_provider || !model_name || !channel || !telegram_bot_token || !llm_api_key) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Validate model_provider against allowed providers
+    const validProvider = llmProviders.find(p => p.id === model_provider)
+    if (!validProvider) {
+      return NextResponse.json({ error: 'Invalid model provider' }, { status: 400 })
+    }
+    const validModel = validProvider.models.find(m => m.id === model_name)
+    if (!validModel) {
+      return NextResponse.json({ error: 'Invalid model for selected provider' }, { status: 400 })
     }
 
     // Validate character files size (EC2 user-data has 16KB limit, ~6KB reserved for script)

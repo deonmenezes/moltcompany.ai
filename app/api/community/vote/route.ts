@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { rateLimit } from '@/lib/sanitize'
 
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getUser(req)
     if (!authUser?.email && !authUser?.phone) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limit: 60 votes per minute
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const { success: rateLimitOk } = rateLimit(`vote:${ip}`, { maxRequests: 60, windowMs: 60_000 })
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
     const { bot_id, vote_type } = await req.json()

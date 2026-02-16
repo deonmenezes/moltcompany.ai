@@ -56,12 +56,6 @@ async function getOrCreateSecurityGroup(): Promise<string> {
           ToPort: 8080,
           IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'OpenClaw UI' }],
         },
-        {
-          IpProtocol: 'tcp',
-          FromPort: 22,
-          ToPort: 22,
-          IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'SSH' }],
-        },
       ],
     })
   )

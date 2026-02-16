@@ -1,24 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { sanitizeUrl, rateLimit } from '@/lib/sanitize'
 
 export async function GET(req: NextRequest) {
   const sort = req.nextUrl.searchParams.get('sort') || 'newest'
+  const search = req.nextUrl.searchParams.get('q') || ''
+  const category = req.nextUrl.searchParams.get('category') || ''
+  const limit = Math.min(parseInt(req.nextUrl.searchParams.get('limit') || '100'), 200)
+  const offset = parseInt(req.nextUrl.searchParams.get('offset') || '0')
 
   let query = supabase
     .from('community_bots')
-    .select('*')
+    .select('id, name, bot_name, description, icon_url, author_name, role, color, upvotes, downvotes, character_file, soul_md, created_at, category, tags, view_count, deploy_count, fork_count')
     .eq('status', 'published')
 
-  if (sort === 'top') {
-    query = query.order('upvotes', { ascending: false })
-  } else {
-    query = query.order('created_at', { ascending: false })
+  // Search by name, description, or role
+  if (search.trim()) {
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,role.ilike.%${search}%,bot_name.ilike.%${search}%`)
   }
 
-  const { data: bots } = await query.limit(100)
+  // Filter by category
+  if (category) {
+    query = query.eq('category', category)
+  }
 
-  return NextResponse.json({ bots: bots || [] })
+  // Sort options
+  switch (sort) {
+    case 'top':
+      query = query.order('upvotes', { ascending: false })
+      break
+    case 'trending':
+      query = query.order('upvotes', { ascending: false }).order('created_at', { ascending: false })
+      break
+    case 'most_deployed':
+      query = query.order('deploy_count', { ascending: false })
+      break
+    case 'most_viewed':
+      query = query.order('view_count', { ascending: false })
+      break
+    default:
+      query = query.order('created_at', { ascending: false })
+  }
+
+  const { data: bots } = await query.range(offset, offset + limit - 1)
+
+  // Get total count for pagination
+  const { count } = await supabase
+    .from('community_bots')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'published')
+
+  return NextResponse.json({
+    bots: bots || [],
+    total: count || 0,
+  })
 }
 
 export async function POST(req: NextRequest) {
@@ -72,7 +108,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { name, description, icon_url, character_file, role, color, tools_config } = await req.json()
+    // Rate limit: 5 publishes per minute
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
+    const { success: rateLimitOk } = rateLimit(`community-publish:${ip}`, { maxRequests: 5, windowMs: 60_000 })
+    if (!rateLimitOk) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+    }
+
+    const { name, description, icon_url, character_file, role, color, tools_config, category, tags } = await req.json()
 
     if (!name?.trim() || !character_file?.trim()) {
       return NextResponse.json(
@@ -80,6 +123,18 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Validate color format (hex only)
+    const safeColor = /^#[0-9A-Fa-f]{6}$/.test(color || '') ? color : null
+
+    // Validate category
+    const validCategories = ['productivity', 'creative', 'business', 'education', 'entertainment', 'developer', 'health', 'social', 'finance', 'other']
+    const safeCategory = validCategories.includes(category) ? category : 'other'
+
+    // Validate tags (array of strings, max 5)
+    const safeTags = Array.isArray(tags)
+      ? tags.filter((t: unknown) => typeof t === 'string').slice(0, 5).map((t: string) => t.toLowerCase().trim().slice(0, 30))
+      : []
 
     const { data: bot, error } = await supabase
       .from('community_bots')
@@ -90,14 +145,19 @@ export async function POST(req: NextRequest) {
         name: name.trim().slice(0, 60),
         bot_name: name.trim().slice(0, 60),
         description: (description || '').slice(0, 300),
-        icon_url: icon_url || null,
+        icon_url: sanitizeUrl(icon_url),
         character_file: character_file.slice(0, 10000),
         soul_md: character_file.slice(0, 10000),
         role: (role || '').slice(0, 60) || null,
-        color: color || null,
+        color: safeColor,
         tools_config: tools_config ? JSON.stringify(tools_config) : null,
+        category: safeCategory,
+        tags: safeTags,
         upvotes: 0,
         downvotes: 0,
+        view_count: 0,
+        deploy_count: 0,
+        fork_count: 0,
         status: 'published',
       })
       .select()

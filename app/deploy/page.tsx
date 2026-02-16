@@ -5,7 +5,6 @@ import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { CompanionSelector } from '@/components/ModelSelector'
-import { ChannelSelector } from '@/components/ChannelSelector'
 import { TelegramConnect } from '@/components/TelegramConnect'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { DeployButton } from '@/components/DeployButton'
@@ -30,7 +29,7 @@ type StepId = 'companion' | 'model' | 'telegram' | 'personality' | 'deploy'
 function DeployForm() {
   const { user, session, loading } = useAuth()
   const searchParams = useSearchParams()
-  const botParam = searchParams.get('model')
+  const botParam = searchParams.get('model') || searchParams.get('community')
   const canceled = searchParams.get('canceled') === 'true'
 
   const hasPreselected = !!bots.find(b => b.id === botParam)

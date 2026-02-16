@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { sanitizeUrl } from '@/lib/sanitize'
 
 export async function GET(req: NextRequest) {
   try {
@@ -62,7 +63,7 @@ export async function PATCH(req: NextRequest) {
 
     const updates: Record<string, string | null> = {}
     if (name !== undefined) updates.name = name?.slice(0, 100) || null
-    if (avatar_url !== undefined) updates.avatar_url = avatar_url?.slice(0, 500) || null
+    if (avatar_url !== undefined) updates.avatar_url = sanitizeUrl(avatar_url)
     if (bio !== undefined) updates.bio = bio?.slice(0, 300) || null
 
     const { data: user, error } = await supabase

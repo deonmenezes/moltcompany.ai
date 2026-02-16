@@ -1,7 +1,14 @@
 import crypto from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'
-const KEY = crypto.scryptSync(process.env.NEXTAUTH_SECRET || 'fallback-key', 'salt', 32)
+
+if (!process.env.ENCRYPTION_KEY && !process.env.NEXTAUTH_SECRET) {
+  console.warn('[SECURITY] Neither ENCRYPTION_KEY nor NEXTAUTH_SECRET is set. Encryption will be insecure.')
+}
+
+const SECRET = process.env.ENCRYPTION_KEY || process.env.NEXTAUTH_SECRET || ''
+const SALT = process.env.ENCRYPTION_SALT || 'moltcompany-encryption-salt-v1'
+const KEY = crypto.scryptSync(SECRET, SALT, 32)
 
 export function encrypt(text: string): string {
   const iv = crypto.randomBytes(16)

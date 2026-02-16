@@ -13,7 +13,7 @@ export const bots = [
     characterName: 'BOB',
     characterRole: 'CEO',
     category: 'leadership' as Category,
-    avatar: null as string | null,
+    avatar: '/avatars/bob.png',
     tagline: 'Leads strategy, sets vision, and makes the hard calls',
     description: 'Your AI chief executive. Bob synthesizes data, drafts strategic plans, and keeps every department aligned.',
     color: '#FFD600',

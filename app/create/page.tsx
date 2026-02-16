@@ -50,6 +50,9 @@ export default function CreateCompanionPage() {
   const [iconUrl, setIconUrl] = useState('')
   const [color, setColor] = useState(COLOR_PALETTE[0])
   const [characterFiles, setCharacterFiles] = useState<CharacterFiles>(blankCharacterFiles)
+  const [category, setCategory] = useState('other')
+  const [tagsInput, setTagsInput] = useState('')
+  const [tags, setTags] = useState<string[]>([])
   const [toolsConfig, setToolsConfig] = useState({
     browser: true,
     reactions: true,
@@ -178,6 +181,8 @@ export default function CreateCompanionPage() {
           role: role.trim(),
           color,
           tools_config: toolsConfig,
+          category,
+          tags,
         }),
       })
       const data = await res.json()
@@ -343,6 +348,72 @@ export default function CreateCompanionPage() {
                   className="w-full px-4 py-3 border-3 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow transition resize-none"
                 />
                 <p className="text-xs text-brand-gray-medium mt-1">{description.length}/300 characters</p>
+              </div>
+
+              {/* Category */}
+              <div className="mb-6">
+                <label className="block font-display font-bold text-sm uppercase mb-2">Category</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'productivity', label: 'Productivity' },
+                    { id: 'creative', label: 'Creative' },
+                    { id: 'business', label: 'Business' },
+                    { id: 'education', label: 'Education' },
+                    { id: 'entertainment', label: 'Entertainment' },
+                    { id: 'developer', label: 'Developer' },
+                    { id: 'health', label: 'Health' },
+                    { id: 'social', label: 'Social' },
+                    { id: 'finance', label: 'Finance' },
+                    { id: 'other', label: 'Other' },
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategory(cat.id)}
+                      className={`px-3 py-1.5 border-2 border-black font-display font-bold text-xs uppercase transition-all ${
+                        category === cat.id ? 'bg-brand-yellow shadow-comic-sm' : 'bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="mb-6">
+                <label className="block font-display font-bold text-sm uppercase mb-2">Tags (up to 5)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={tagsInput}
+                    onChange={e => setTagsInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault()
+                        const tag = tagsInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '')
+                        if (tag && tags.length < 5 && !tags.includes(tag)) {
+                          setTags([...tags, tag])
+                        }
+                        setTagsInput('')
+                      }
+                    }}
+                    placeholder="Type a tag and press Enter..."
+                    className="flex-1 px-4 py-2 border-3 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow transition text-sm"
+                    disabled={tags.length >= 5}
+                  />
+                </div>
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {tags.map(tag => (
+                      <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-display font-bold bg-gray-100 border border-gray-300 text-gray-700 uppercase">
+                        #{tag}
+                        <button type="button" onClick={() => setTags(tags.filter(t => t !== tag))} className="text-red-400 hover:text-red-600 ml-0.5">&times;</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-brand-gray-medium mt-1">{tags.length}/5 tags &mdash; helps users discover your companion</p>
               </div>
 
               {/* Live preview card */}
@@ -516,6 +587,20 @@ export default function CreateCompanionPage() {
                   <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">Description</span>
                   <span className="font-display text-sm text-right max-w-[200px] truncate">{description || 'None'}</span>
                 </div>
+                <div className="h-px bg-gray-200" />
+                <div className="flex items-center justify-between">
+                  <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">Category</span>
+                  <span className="font-display font-bold text-sm capitalize">{category}</span>
+                </div>
+                {tags.length > 0 && (
+                  <>
+                    <div className="h-px bg-gray-200" />
+                    <div className="flex items-center justify-between">
+                      <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">Tags</span>
+                      <span className="font-display text-sm">{tags.map(t => `#${t}`).join(', ')}</span>
+                    </div>
+                  </>
+                )}
                 <div className="h-px bg-gray-200" />
                 <div className="flex items-center justify-between">
                   <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">Character Files</span>

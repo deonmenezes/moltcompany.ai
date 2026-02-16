@@ -243,7 +243,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="comic-heading text-xl">MY PUBLISHED COMPANIONS</h2>
             {communityBots.filter(b => b.status === 'published').length < 3 && user.phone && (
-              <Link href="/community/publish" className="comic-btn text-sm py-2 px-4">
+              <Link href="/create" className="comic-btn text-sm py-2 px-4">
                 PUBLISH NEW
               </Link>
             )}
@@ -282,7 +282,7 @@ export default function ProfilePage() {
             <div className="comic-card p-6 text-center">
               <p className="text-brand-gray-medium mb-3">You haven&apos;t published any companions yet</p>
               {user.phone ? (
-                <Link href="/community/publish" className="comic-btn-outline text-sm inline-block">PUBLISH YOUR FIRST</Link>
+                <Link href="/create" className="comic-btn-outline text-sm inline-block">PUBLISH YOUR FIRST</Link>
               ) : (
                 <p className="text-xs text-brand-gray-medium">Sign in with a phone number to publish companions</p>
               )}

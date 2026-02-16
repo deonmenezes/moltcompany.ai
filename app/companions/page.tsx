@@ -58,7 +58,7 @@ export default function CompanionsPage() {
             <h1 className="comic-heading text-3xl">ALL AI COMPANIONS</h1>
             <p className="text-sm text-brand-gray-medium mt-1">Browse verified and community-created AI companions</p>
           </div>
-          <Link href="/community/publish" className="comic-btn text-sm py-2 px-5 whitespace-nowrap">
+          <Link href="/create" className="comic-btn text-sm py-2 px-5 whitespace-nowrap">
             PUBLISH COMPANION
           </Link>
         </div>

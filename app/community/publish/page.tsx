@@ -1,9 +1,10 @@
 'use client'
 
 import { useAuth } from '@/components/AuthProvider'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Script from 'next/script'
 
 export default function PublishCompanionPage() {
   const { user, session, loading } = useAuth()
@@ -15,6 +16,25 @@ export default function PublishCompanionPage() {
   const [characterFile, setCharacterFile] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const captchaRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  const renderCaptcha = useCallback(() => {
+    if (captchaRef.current && (window as any).turnstile && !widgetIdRef.current) {
+      widgetIdRef.current = (window as any).turnstile.render(captchaRef.current, {
+        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA',
+        callback: (token: string) => setCaptchaToken(token),
+        'expired-callback': () => setCaptchaToken(''),
+        theme: 'light',
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    // If turnstile script already loaded
+    if ((window as any).turnstile) renderCaptcha()
+  }, [renderCaptcha])
 
   const isPhoneUser = !!user?.phone
 
@@ -79,6 +99,7 @@ export default function PublishCompanionPage() {
     setError('')
     if (!name.trim()) { setError('Companion name is required'); return }
     if (!characterFile.trim()) { setError('Character file content is required'); return }
+    if (!captchaToken) { setError('Please complete the CAPTCHA verification'); return }
 
     setSubmitting(true)
     try {
@@ -93,6 +114,7 @@ export default function PublishCompanionPage() {
           description: description.trim(),
           icon_url: iconUrl.trim() || null,
           character_file: characterFile,
+          captcha_token: captchaToken,
         }),
       })
       const data = await res.json()
@@ -105,6 +127,11 @@ export default function PublishCompanionPage() {
       setError('Failed to publish companion')
     } finally {
       setSubmitting(false)
+      // Reset captcha for retry
+      setCaptchaToken('')
+      if (widgetIdRef.current && (window as any).turnstile) {
+        (window as any).turnstile.reset(widgetIdRef.current)
+      }
     }
   }
 
@@ -216,10 +243,19 @@ export default function PublishCompanionPage() {
           </div>
         )}
 
+        {/* CAPTCHA */}
+        <div className="mb-6 flex justify-center">
+          <Script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+            onLoad={renderCaptcha}
+          />
+          <div ref={captchaRef} />
+        </div>
+
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          disabled={submitting || !name.trim() || !characterFile.trim()}
+          disabled={submitting || !name.trim() || !characterFile.trim() || !captchaToken}
           className="comic-btn w-full text-lg py-4 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {submitting ? 'PUBLISHING...' : 'PUBLISH COMPANION'}

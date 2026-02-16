@@ -115,7 +115,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
 
-    const { name, description, icon_url, character_file, role, color, category } = await req.json()
+    const { name, description, icon_url, character_file, role, color, category, captcha_token } = await req.json()
+
+    // Verify Turnstile CAPTCHA
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!captcha_token) {
+        return NextResponse.json({ error: 'CAPTCHA verification required' }, { status: 400 })
+      }
+      const captchaRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: process.env.TURNSTILE_SECRET_KEY,
+          response: captcha_token,
+        }),
+      })
+      const captchaData = await captchaRes.json()
+      if (!captchaData.success) {
+        return NextResponse.json({ error: 'CAPTCHA verification failed. Please try again.' }, { status: 400 })
+      }
+    }
 
     if (!name?.trim() || !character_file?.trim()) {
       return NextResponse.json(

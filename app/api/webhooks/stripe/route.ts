@@ -33,11 +33,12 @@ export async function POST(req: NextRequest) {
 
       // Save subscription
       const subscriptionId = session.subscription as string
+      const isTrial = session.payment_status === 'no_payment_required'
       await supabase.from('subscriptions').insert({
         user_id: userId,
         stripe_subscription_id: subscriptionId,
-        status: 'active',
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: isTrial ? 'trialing' : 'active',
+        current_period_end: new Date(Date.now() + (isTrial ? 3 : 30) * 24 * 60 * 60 * 1000).toISOString(),
       })
 
       // Update user's stripe customer ID

@@ -228,10 +228,14 @@ function ConsoleContent() {
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
                 <div className="text-xs text-brand-gray-medium font-display font-bold uppercase mb-1">Status</div>
-                <div className="text-sm text-black font-bold capitalize">{subscription.status}</div>
+                <div className="text-sm text-black font-bold capitalize">
+                  {subscription.status === 'trialing' ? '3-Day Free Trial' : subscription.status}
+                </div>
               </div>
               <div>
-                <div className="text-xs text-brand-gray-medium font-display font-bold uppercase mb-1">Next renewal</div>
+                <div className="text-xs text-brand-gray-medium font-display font-bold uppercase mb-1">
+                  {subscription.status === 'trialing' ? 'Trial ends' : 'Next renewal'}
+                </div>
                 <div className="text-sm text-black">
                   {subscription.current_period_end
                     ? new Date(subscription.current_period_end).toLocaleDateString()

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     // Retrieve the Stripe checkout session
     const session = await stripe.checkout.sessions.retrieve(session_id)
-    if (session.payment_status !== 'paid') {
+    if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
       return NextResponse.json({ error: 'Payment not completed' }, { status: 400 })
     }
 
@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
       await supabase.from('subscriptions').upsert({
         user_id: userId,
         stripe_subscription_id: subscriptionId,
-        status: 'active',
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'trialing',
+        current_period_end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       }, { onConflict: 'stripe_subscription_id' })
     }
 

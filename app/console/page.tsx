@@ -96,68 +96,76 @@ export default function ConsolePage() {
           </Link>
         </div>
 
-        {/* Companion grid */}
-        {instances.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {instances.map((instance) => (
-              <CompanionCard
-                key={instance.id}
-                instance={instance}
-                onAction={handleAction}
-                onRefresh={fetchInstances}
-                actionLoading={actionLoading}
-              />
-            ))}
-          </div>
-        ) : (
-          <div>
-            <div className="text-center mb-8">
-              <h3 className="comic-heading text-xl mb-2">RECOMMENDED FOR YOU</h3>
-              <p className="text-brand-gray-medium text-sm">
-                Hire your first AI companion to get started. Each one runs 24/7 on its own dedicated server.
-              </p>
-            </div>
+        {/* Your Employees */}
+        <section className="mb-12">
+          <h2 className="comic-heading text-xl mb-4">YOUR EMPLOYEES</h2>
+          {instances.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {bots.slice(0, 6).map(bot => (
-                <div key={bot.id} className="comic-card-hover flex flex-col">
-                  <div className="h-2" style={{ backgroundColor: bot.color }} />
-                  <Link href={`/companion/${bot.id}`} className="p-5 pb-2 flex flex-col items-center text-center hover:bg-gray-50/50 transition">
-                    <Image
-                      src={bot.avatar}
-                      alt={bot.characterName}
-                      width={64}
-                      height={64}
-                      className="avatar-comic rounded-full bg-brand-gray mb-3"
-                    />
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <h4 className="comic-heading text-lg">{bot.characterName}</h4>
-                      <span className="text-green-500 text-xs" title="Verified">&#10003;</span>
-                    </div>
-                    <span
-                      className="inline-block px-2 py-0.5 text-[10px] font-display font-bold uppercase border-2 border-black"
-                      style={{ backgroundColor: bot.color, color: bot.color === '#FFD600' ? '#000' : '#fff' }}
-                    >
-                      {bot.characterRole}
-                    </span>
-                    <p className="font-body text-xs text-brand-gray-dark mt-3 line-clamp-2">
-                      {bot.tagline}
-                    </p>
-                  </Link>
-                  <div className="p-5 pt-3 mt-auto">
-                    <Link href={`/deploy?model=${bot.id}`} className="comic-btn block text-center w-full text-sm">
-                      HIRE — $40/MO
-                    </Link>
-                  </div>
-                </div>
+              {instances.map((instance) => (
+                <CompanionCard
+                  key={instance.id}
+                  instance={instance}
+                  onAction={handleAction}
+                  onRefresh={fetchInstances}
+                  actionLoading={actionLoading}
+                />
               ))}
             </div>
-            <div className="text-center mt-8">
-              <Link href="/companions" className="comic-btn-outline inline-block text-sm">
-                VIEW ALL COMPANIONS
+          ) : (
+            <div className="comic-card p-8 text-center">
+              <p className="text-brand-gray-medium mb-4">
+                You don&apos;t have any companions yet. Hire one below to get started!
+              </p>
+              <Link href="/companions" className="comic-btn inline-block text-sm">
+                HIRE A COMPANION
               </Link>
             </div>
+          )}
+        </section>
+
+        {/* Recommended */}
+        <section>
+          <h2 className="comic-heading text-xl mb-4">RECOMMENDED FOR YOU</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bots.slice(0, 6).map(bot => (
+              <div key={bot.id} className="comic-card-hover flex flex-col">
+                <div className="h-2" style={{ backgroundColor: bot.color }} />
+                <Link href={`/companion/${bot.id}`} className="p-5 pb-2 flex flex-col items-center text-center hover:bg-gray-50/50 transition">
+                  <Image
+                    src={bot.avatar}
+                    alt={bot.characterName}
+                    width={64}
+                    height={64}
+                    className="avatar-comic rounded-full bg-brand-gray mb-3"
+                  />
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <h4 className="comic-heading text-lg">{bot.characterName}</h4>
+                    <span className="text-green-500 text-xs" title="Verified">&#10003;</span>
+                  </div>
+                  <span
+                    className="inline-block px-2 py-0.5 text-[10px] font-display font-bold uppercase border-2 border-black"
+                    style={{ backgroundColor: bot.color, color: bot.color === '#FFD600' ? '#000' : '#fff' }}
+                  >
+                    {bot.characterRole}
+                  </span>
+                  <p className="font-body text-xs text-brand-gray-dark mt-3 line-clamp-2">
+                    {bot.tagline}
+                  </p>
+                </Link>
+                <div className="p-5 pt-3 mt-auto">
+                  <Link href={`/deploy?model=${bot.id}`} className="comic-btn block text-center w-full text-sm">
+                    HIRE — $40/MO
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+          <div className="text-center mt-6">
+            <Link href="/companions" className="comic-btn-outline inline-block text-sm">
+              VIEW ALL COMPANIONS
+            </Link>
+          </div>
+        </section>
 
         {/* Subscription info */}
         {subscription && (

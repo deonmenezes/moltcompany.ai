@@ -36,7 +36,7 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="pt-16 pb-20 px-4 border-b-3 border-black">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="comic-heading text-5xl md:text-7xl lg:text-4xl mb-6 leading-[0.95]">
+          <h1 className="comic-heading text-5xl md:text-7xl lg:text-6xl mb-6 leading-[0.95]">
             WORLDS FIRST<br />
             <span className="yellow-highlight">OPENCLAW MARKETPLACE 🦞</span><br />
             DEPLOY ANY BOT IN 60 SECONDS

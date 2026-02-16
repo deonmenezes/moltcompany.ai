@@ -57,7 +57,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-5">
             {loading ? null : user ? (
               <>
                 <Link href="/console" className={navLinkClass('/console')}>

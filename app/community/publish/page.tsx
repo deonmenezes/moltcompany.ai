@@ -23,7 +23,7 @@ export default function PublishCompanionPage() {
   const renderCaptcha = useCallback(() => {
     if (captchaRef.current && (window as any).turnstile && !widgetIdRef.current) {
       widgetIdRef.current = (window as any).turnstile.render(captchaRef.current, {
-        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA',
+        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAACeAvAlmTCEOI0Sf',
         callback: (token: string) => setCaptchaToken(token),
         'expired-callback': () => setCaptchaToken(''),
         theme: 'light',

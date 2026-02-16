@@ -60,9 +60,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getUser(req)
-    if (!authUser?.phone) {
+    if (!authUser?.email) {
       return NextResponse.json(
-        { error: 'Only phone-verified users can publish companions' },
+        { error: 'Sign in with Google to publish companions' },
         { status: 403 }
       )
     }

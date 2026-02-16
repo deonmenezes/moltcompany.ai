@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CharacterEditor } from '@/components/CharacterEditor'
-import { PhoneInput } from '@/components/PhoneInput'
 import { CHARACTER_FILE_NAMES, type CharacterFiles } from '@/lib/character-files'
 
 const COLOR_PALETTE = [
@@ -42,7 +41,7 @@ Public persona:
 type StepId = 'basics' | 'personality' | 'tools' | 'publish'
 
 export default function CreateCompanionPage() {
-  const { user, session, loading, linkPhone, verifyPhoneLink } = useAuth()
+  const { user, session, loading } = useAuth()
   const router = useRouter()
 
   const [name, setName] = useState('')
@@ -65,13 +64,6 @@ export default function CreateCompanionPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [published, setPublished] = useState(false)
-
-  // Phone verification state
-  const [phoneStep, setPhoneStep] = useState<'enter' | 'verify' | 'done'>('enter')
-  const [phoneInput, setPhoneInput] = useState('')
-  const [phoneOtp, setPhoneOtp] = useState('')
-  const [phoneSending, setPhoneSending] = useState(false)
-  const [phoneError, setPhoneError] = useState('')
 
   const allSteps: StepId[] = ['basics', 'personality', 'tools', 'publish']
   const currentStep = allSteps[currentStepIndex]
@@ -629,99 +621,11 @@ export default function CreateCompanionPage() {
                 </div>
               </div>
 
-              {/* Phone verification gate */}
-              {!user?.phone && (
-                <div className="comic-card p-6 mb-6 border-brand-yellow">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 border-3 border-black bg-brand-yellow flex items-center justify-center">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                    </div>
-                    <div>
-                      <h3 className="font-display font-bold text-sm uppercase">Verify Your Phone to Publish</h3>
-                      <p className="text-xs text-brand-gray-medium">We&apos;ll send a code via WhatsApp to verify your number</p>
-                    </div>
-                  </div>
-
-                  {phoneStep === 'enter' && (
-                    <div className="space-y-3">
-                      <PhoneInput value={phoneInput} onChange={setPhoneInput} />
-                      {phoneError && <p className="text-red-600 text-sm font-body font-medium">{phoneError}</p>}
-                      <button
-                        onClick={async () => {
-                          setPhoneError('')
-                          if (!phoneInput || phoneInput.length < 8) {
-                            setPhoneError('Enter a valid phone number with country code (e.g. +1234567890)')
-                            return
-                          }
-                          setPhoneSending(true)
-                          const { error: err } = await linkPhone(phoneInput)
-                          setPhoneSending(false)
-                          if (err) {
-                            setPhoneError(err)
-                          } else {
-                            setPhoneStep('verify')
-                          }
-                        }}
-                        disabled={phoneSending}
-                        className="comic-btn w-full text-sm py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {phoneSending ? 'SENDING...' : 'SEND CODE VIA WHATSAPP'}
-                      </button>
-                    </div>
-                  )}
-
-                  {phoneStep === 'verify' && (
-                    <div className="space-y-3">
-                      <p className="text-sm text-brand-gray-medium font-body">
-                        Enter the 6-digit code sent via WhatsApp to <strong className="text-black">{phoneInput}</strong>
-                      </p>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={phoneOtp}
-                        onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="000000"
-                        maxLength={6}
-                        className="w-full border-3 border-black px-4 py-3 font-body text-2xl text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-brand-yellow"
-                        autoFocus
-                      />
-                      {phoneError && <p className="text-red-600 text-sm font-body font-medium">{phoneError}</p>}
-                      <button
-                        onClick={async () => {
-                          setPhoneError('')
-                          if (!phoneOtp || phoneOtp.length < 6) {
-                            setPhoneError('Enter the 6-digit code')
-                            return
-                          }
-                          setPhoneSending(true)
-                          const { error: err } = await verifyPhoneLink(phoneInput, phoneOtp)
-                          setPhoneSending(false)
-                          if (err) {
-                            setPhoneError(err)
-                          } else {
-                            setPhoneStep('done')
-                          }
-                        }}
-                        disabled={phoneSending}
-                        className="comic-btn w-full text-sm py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {phoneSending ? 'VERIFYING...' : 'VERIFY PHONE'}
-                      </button>
-                      <button
-                        onClick={() => { setPhoneStep('enter'); setPhoneOtp(''); setPhoneError('') }}
-                        className="w-full text-center text-xs font-display font-bold text-brand-gray-medium hover:text-black transition cursor-pointer"
-                      >
-                        USE A DIFFERENT NUMBER
-                      </button>
-                    </div>
-                  )}
-
-                  {phoneStep === 'done' && (
-                    <div className="flex items-center gap-2 text-green-600">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                      <span className="font-display font-bold text-sm">Phone verified!</span>
-                    </div>
-                  )}
+              {/* Verified via Google */}
+              {user?.email && (
+                <div className="flex items-center gap-2 text-green-600 mb-4">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <span className="font-display font-bold text-sm">Verified as {user.email}</span>
                 </div>
               )}
 
@@ -735,7 +639,7 @@ export default function CreateCompanionPage() {
               {/* Publish button */}
               <button
                 onClick={handlePublish}
-                disabled={submitting || !name.trim() || (!user?.phone && phoneStep !== 'done')}
+                disabled={submitting || !name.trim() || !user?.email}
                 className="comic-btn w-full text-lg py-4 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {submitting ? 'PUBLISHING...' : 'PUBLISH TO COMMUNITY'}

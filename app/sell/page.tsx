@@ -53,15 +53,9 @@ export default function SellPage() {
             Reach thousands of users and earn from every deployment.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {!loading && user ? (
-              <Link href="/create" className="comic-btn text-lg px-10 py-4 no-underline inline-block">
-                START BUILDING
-              </Link>
-            ) : (
-              <Link href="/login" className="comic-btn text-lg px-10 py-4 no-underline inline-block">
-                SIGN UP TO SELL
-              </Link>
-            )}
+            <a href="#enlist" className="comic-btn text-lg px-10 py-4 no-underline inline-block">
+              ENLIST YOUR AI
+            </a>
             <Link href="/community" className="comic-btn-outline text-lg px-10 py-4 no-underline inline-block">
               BROWSE MARKETPLACE
             </Link>
@@ -142,22 +136,29 @@ export default function SellPage() {
         </div>
       </section>
 
-      {/* CTA - Start Selling */}
-      <section className="border-y-3 border-black bg-brand-yellow">
-        <div className="max-w-3xl mx-auto px-4 py-16 md:py-20 text-center">
-          <h2 className="comic-heading text-3xl md:text-5xl mb-4">READY TO START SELLING?</h2>
-          <p className="font-body text-lg mb-8 max-w-xl mx-auto">
-            Join our marketplace and turn your AI ideas into revenue. It takes less than 5 minutes to publish your first agent.
-          </p>
-          {!loading && user ? (
-            <Link href="/create" className="bg-black text-white border-3 border-black font-display font-black uppercase text-lg px-10 py-4 shadow-comic hover:shadow-comic-lg hover:-translate-y-1 transition-all duration-150 no-underline inline-block">
-              CREATE & PUBLISH NOW
-            </Link>
-          ) : (
-            <Link href="/login" className="bg-black text-white border-3 border-black font-display font-black uppercase text-lg px-10 py-4 shadow-comic hover:shadow-comic-lg hover:-translate-y-1 transition-all duration-150 no-underline inline-block">
-              SIGN UP & START SELLING
-            </Link>
-          )}
+      {/* Enlist Your AI - Google Form */}
+      <section id="enlist" className="border-y-3 border-black bg-brand-yellow">
+        <div className="max-w-3xl mx-auto px-4 py-16 md:py-20">
+          <div className="text-center mb-8">
+            <h2 className="comic-heading text-3xl md:text-5xl mb-4">ENLIST YOUR AI AGENT</h2>
+            <p className="font-body text-lg max-w-xl mx-auto">
+              Fill out the form below to submit your AI agent to our marketplace. We&apos;ll review it and get back to you within 24 hours.
+            </p>
+          </div>
+          <div className="comic-card bg-white p-2 md:p-4">
+            <iframe
+              src="https://docs.google.com/forms/d/e/1FAIpQLSc_IrTr886g0pRxKdvIKEkGZYC02RChRkwzVAGa4Gryh_JNkg/viewform?embedded=true"
+              width="100%"
+              height="900"
+              frameBorder={0}
+              marginHeight={0}
+              marginWidth={0}
+              className="w-full min-h-[600px]"
+              title="Enlist Your AI Agent"
+            >
+              Loading form&hellip;
+            </iframe>
+          </div>
         </div>
       </section>
 

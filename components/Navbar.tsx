@@ -58,6 +58,9 @@ export function Navbar() {
                 <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                   Support
                 </Link>
+                <Link href="/company-package" className="font-display text-sm font-black uppercase bg-brand-yellow border-2 border-black px-3 py-1 hover:shadow-comic-sm transition no-underline">
+                  $300 DEAL
+                </Link>
                 <Link href="/create" className="comic-btn text-sm py-1.5 px-4 no-underline">
                   + CREATE
                 </Link>
@@ -90,6 +93,9 @@ export function Navbar() {
                 </Link>
                 <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
                   Support
+                </Link>
+                <Link href="/company-package" className="font-display text-sm font-black uppercase bg-brand-yellow border-2 border-black px-3 py-1 hover:shadow-comic-sm transition no-underline">
+                  $300 DEAL
                 </Link>
                 <Link
                   href="/login"

@@ -181,6 +181,26 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* COMPANY PACKAGE OFFER */}
+      <section className="py-10 px-4 bg-brand-yellow border-b-3 border-black">
+        <div className="max-w-4xl mx-auto">
+          <Link href="/company-package" className="comic-card-hover block p-6 md:p-8 bg-black text-white text-center">
+            <span className="inline-block px-3 py-1 bg-brand-yellow text-black border-2 border-black font-display font-black text-xs uppercase mb-4">
+              LIMITED OFFER
+            </span>
+            <h2 className="comic-heading text-3xl md:text-4xl mb-2">
+              GET THE <span className="text-brand-yellow">ENTIRE COMPANY</span> FOR $300/MO
+            </h2>
+            <p className="text-gray-400 font-body mb-4 max-w-xl mx-auto">
+              All 9 AI employees &mdash; CEO, Legal, Sales, Dev, Security, HR, Data, Finance &amp; AI Engineer &mdash; on dedicated servers. Save $60/month.
+            </p>
+            <span className="comic-btn text-sm inline-block">
+              VIEW PACKAGE DETAILS
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <section className="comic-section bg-black text-white">
         <div className="max-w-3xl mx-auto text-center">
@@ -222,6 +242,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-brand-gray-medium">
                 <li><Link href="/companions" className="hover:text-black transition">All Companions</Link></li>
                 <li><Link href="/deploy" className="hover:text-black transition">Hire Companion</Link></li>
+                <li><Link href="/company-package" className="hover:text-black transition text-brand-yellow font-bold">Full Company - $300/mo</Link></li>
                 <li><Link href="/console" className="hover:text-black transition">Console</Link></li>
                 <li><Link href="/create" className="hover:text-black transition">Create Companion</Link></li>
               </ul>

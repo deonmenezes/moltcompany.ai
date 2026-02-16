@@ -3,12 +3,26 @@
 import Link from 'next/link'
 import { useAuth } from '@/components/AuthProvider'
 import { usePathname } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
 
 export function Navbar() {
   const { user, loading, signOut } = useAuth()
   const pathname = usePathname()
+  const [helpOpen, setHelpOpen] = useState(false)
+  const helpRef = useRef<HTMLDivElement>(null)
 
   const isActive = (path: string) => pathname === path
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (helpRef.current && !helpRef.current.contains(e.target as Node)) {
+        setHelpOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   // Bottom tab items for logged-in users
   const authTabs = [
@@ -30,6 +44,9 @@ export function Navbar() {
 
   const tabs = user ? authTabs : guestTabs
 
+  const navLinkClass = (path: string) =>
+    `font-display text-sm font-bold uppercase transition flex items-center gap-1.5 ${isActive(path) ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`
+
   return (
     <>
       {/* Top bar */}
@@ -40,37 +57,55 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-4">
-            <a
-              href="https://github.com/deonmenezes/moltcompany.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs font-display font-bold text-black hover:text-brand-yellow transition border-2 border-black rounded-full px-2.5 py-1 hover:shadow-comic-sm"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              Star
-            </a>
+          <div className="hidden md:flex items-center gap-3">
             {loading ? null : user ? (
               <>
-                <Link href="/console" className={`font-display text-sm font-bold uppercase transition ${isActive('/console') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/console" className={navLinkClass('/console')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
                   Console
                 </Link>
-                <Link href="/community" className={`font-display text-sm font-bold uppercase transition ${isActive('/community') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/community" className={navLinkClass('/community')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   Community
                 </Link>
-                <Link href="/companions" className={`font-display text-sm font-bold uppercase transition ${isActive('/companions') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/companions" className={navLinkClass('/companions')}>
                   Explore
                 </Link>
-                <Link href="/sell" className={`font-display text-sm font-bold uppercase transition ${isActive('/sell') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/sell" className={navLinkClass('/sell')}>
                   Sell
                 </Link>
-                <Link href="/docs" className={`font-display text-sm font-bold uppercase transition ${isActive('/docs') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
-                  Docs
-                </Link>
-                <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
-                  Support
-                </Link>
+
+                {/* Help dropdown (Docs + Support) */}
+                <div className="relative" ref={helpRef}>
+                  <button
+                    onClick={() => setHelpOpen(!helpOpen)}
+                    className={`font-display text-sm font-bold uppercase transition flex items-center gap-1 ${
+                      isActive('/docs') || isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'
+                    }`}
+                  >
+                    Help
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {helpOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-40 bg-white border-3 border-black shadow-comic-sm z-50">
+                      <Link
+                        href="/docs"
+                        onClick={() => setHelpOpen(false)}
+                        className={`block px-4 py-2.5 font-display text-sm font-bold uppercase transition border-b-2 border-gray-100 ${isActive('/docs') ? 'text-brand-yellow' : 'text-black hover:bg-gray-50'}`}
+                      >
+                        Docs
+                      </Link>
+                      <Link
+                        href="/support"
+                        onClick={() => setHelpOpen(false)}
+                        className={`block px-4 py-2.5 font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:bg-gray-50'}`}
+                      >
+                        Support
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
                 <Link href="/company-package" className="font-display text-sm font-black uppercase bg-brand-yellow border-2 border-black px-3 py-1 hover:shadow-comic-sm transition no-underline">
                   Offer
                 </Link>
@@ -86,6 +121,15 @@ export function Navbar() {
                     </div>
                   )}
                 </Link>
+                <a
+                  href="https://github.com/deonmenezes/moltcompany.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black hover:text-brand-yellow transition"
+                  aria-label="Star on GitHub"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
                 <button
                   onClick={() => signOut()}
                   className="text-sm font-medium text-brand-gray-medium hover:text-black transition"
@@ -95,24 +139,60 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/community" className={`font-display text-sm font-bold uppercase transition ${isActive('/community') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/community" className={navLinkClass('/community')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   Community
                 </Link>
-                <Link href="/companions" className={`font-display text-sm font-bold uppercase transition ${isActive('/companions') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/companions" className={navLinkClass('/companions')}>
                   Explore
                 </Link>
-                <Link href="/sell" className={`font-display text-sm font-bold uppercase transition ${isActive('/sell') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
+                <Link href="/sell" className={navLinkClass('/sell')}>
                   Sell
                 </Link>
-                <Link href="/docs" className={`font-display text-sm font-bold uppercase transition ${isActive('/docs') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
-                  Docs
-                </Link>
-                <Link href="/support" className={`font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'}`}>
-                  Support
-                </Link>
+
+                {/* Help dropdown (Docs + Support) */}
+                <div className="relative" ref={helpRef}>
+                  <button
+                    onClick={() => setHelpOpen(!helpOpen)}
+                    className={`font-display text-sm font-bold uppercase transition flex items-center gap-1 ${
+                      isActive('/docs') || isActive('/support') ? 'text-brand-yellow' : 'text-black hover:text-brand-gray-medium'
+                    }`}
+                  >
+                    Help
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {helpOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-40 bg-white border-3 border-black shadow-comic-sm z-50">
+                      <Link
+                        href="/docs"
+                        onClick={() => setHelpOpen(false)}
+                        className={`block px-4 py-2.5 font-display text-sm font-bold uppercase transition border-b-2 border-gray-100 ${isActive('/docs') ? 'text-brand-yellow' : 'text-black hover:bg-gray-50'}`}
+                      >
+                        Docs
+                      </Link>
+                      <Link
+                        href="/support"
+                        onClick={() => setHelpOpen(false)}
+                        className={`block px-4 py-2.5 font-display text-sm font-bold uppercase transition ${isActive('/support') ? 'text-brand-yellow' : 'text-black hover:bg-gray-50'}`}
+                      >
+                        Support
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
                 <Link href="/company-package" className="font-display text-sm font-black uppercase bg-brand-yellow border-2 border-black px-3 py-1 hover:shadow-comic-sm transition no-underline">
                   Offer
                 </Link>
+                <a
+                  href="https://github.com/deonmenezes/moltcompany.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-black hover:text-brand-yellow transition"
+                  aria-label="Star on GitHub"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
                 <Link
                   href="/login"
                   className="comic-btn text-sm py-2 px-6 no-underline"
@@ -132,7 +212,7 @@ export function Navbar() {
               className="p-2 text-black hover:text-brand-yellow transition"
               aria-label="Star on GitHub"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
             </a>
             {!loading && user ? (
               <>

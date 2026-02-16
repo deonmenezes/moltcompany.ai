@@ -106,3 +106,8 @@ body {
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+/* iOS safe area for bottom tab bar */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

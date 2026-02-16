@@ -5,6 +5,8 @@ import { stripe } from '@/lib/stripe'
 import { launchInstance } from '@/lib/aws'
 import { decrypt } from '@/lib/encryption'
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   try {
     const authUser = await getUser(req)

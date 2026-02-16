@@ -54,6 +54,7 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
   const [newKey, setNewKey] = useState('')
   const [updatingKey, setUpdatingKey] = useState(false)
   const [cancelingSubscription, setCancelingSubscription] = useState(false)
+  const [retryingLaunch, setRetryingLaunch] = useState(false)
 
   const handleUpdateKey = async () => {
     if (!newKey.trim() || newKey.trim().length < 10) {
@@ -114,6 +115,33 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
       alert('Failed to cancel subscription')
     } finally {
       setCancelingSubscription(false)
+    }
+  }
+
+  const handleRetryLaunch = async () => {
+    setRetryingLaunch(true)
+    try {
+      const res = await fetch('/api/instance', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'retry_launch',
+          instance_id: instance.id,
+        }),
+      })
+      if (res.ok) {
+        onRefresh()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to launch instance')
+      }
+    } catch {
+      alert('Failed to launch instance')
+    } finally {
+      setRetryingLaunch(false)
     }
   }
 
@@ -239,6 +267,15 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
       {/* Actions */}
       <div className="mt-auto border-t-3 border-black px-5 py-3 flex flex-col gap-2">
         <div className="flex flex-wrap gap-2">
+          {['pending_payment', 'failed'].includes(instance.status) && (
+            <button
+              onClick={handleRetryLaunch}
+              disabled={retryingLaunch}
+              className="comic-btn text-xs py-1.5 px-3 disabled:opacity-50"
+            >
+              {retryingLaunch ? 'LAUNCHING...' : 'LAUNCH NOW'}
+            </button>
+          )}
           {instance.public_ip && instance.status === 'running' && (
             <a
               href={`http://${instance.public_ip}:8080?token=${instance.gateway_token}`}
@@ -278,7 +315,7 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
         </div>
         {/* Destructive actions row */}
         <div className="flex flex-wrap gap-2">
-          {['running', 'stopped', 'provisioning'].includes(instance.status) && (
+          {['running', 'stopped', 'provisioning', 'pending_payment', 'failed'].includes(instance.status) && (
             <button
               onClick={() => {
                 if (confirm(`Terminate ${name}? This will permanently delete this companion and all its data.`)) {
@@ -291,7 +328,7 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
               {isLoading ? '...' : 'TERMINATE'}
             </button>
           )}
-          {['running', 'stopped', 'provisioning'].includes(instance.status) && (
+          {['running', 'stopped', 'provisioning', 'pending_payment', 'failed'].includes(instance.status) && (
             <button
               onClick={handleCancelSubscription}
               disabled={cancelingSubscription || isLoading}

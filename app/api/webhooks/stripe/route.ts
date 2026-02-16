@@ -5,6 +5,8 @@ import { launchInstance } from '@/lib/aws'
 import { decrypt } from '@/lib/encryption'
 import Stripe from 'stripe'
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!

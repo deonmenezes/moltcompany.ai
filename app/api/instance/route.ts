@@ -5,6 +5,8 @@ import { getInstancePublicIp, getInstanceState, stopInstance, startInstance, ter
 import { encrypt, decrypt } from '@/lib/encryption'
 import { stripe } from '@/lib/stripe'
 
+export const maxDuration = 60
+
 export async function GET(req: NextRequest) {
   try {
     const authUser = await getUser(req)
@@ -201,6 +203,50 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
+    // Retry launch for stuck pending_payment instances
+    if (action === 'retry_launch') {
+      const { data: inst } = await supabase
+        .from('instances')
+        .select('*')
+        .eq('id', instance_id)
+        .eq('user_id', user.id)
+        .in('status', ['pending_payment', 'failed'])
+        .maybeSingle()
+
+      if (!inst) {
+        return NextResponse.json({ error: 'No pending instance found' }, { status: 404 })
+      }
+
+      try {
+        const { instanceId: ec2InstanceId } = await launchInstance({
+          userId: user.id,
+          modelProvider: inst.model_provider!,
+          modelName: inst.model_name!,
+          apiKey: decrypt(inst.llm_api_key!),
+          telegramToken: decrypt(inst.telegram_bot_token!),
+          gatewayToken: inst.gateway_token!,
+          characterFiles: inst.character_files || undefined,
+        })
+
+        await supabase
+          .from('instances')
+          .update({
+            ec2_instance_id: ec2InstanceId,
+            status: 'provisioning',
+          })
+          .eq('id', instance_id)
+
+        return NextResponse.json({ success: true })
+      } catch (err: any) {
+        console.error('Retry launch failed:', err)
+        await supabase
+          .from('instances')
+          .update({ status: 'failed' })
+          .eq('id', instance_id)
+        return NextResponse.json({ error: 'EC2 launch failed: ' + (err?.message || 'unknown') }, { status: 500 })
+      }
+    }
+
     // Standard start/stop actions
     const { data: instance } = await supabase
       .from('instances')
@@ -266,7 +312,7 @@ export async function DELETE(req: NextRequest) {
       .select('ec2_instance_id, id')
       .eq('id', instance_id)
       .eq('user_id', user.id)
-      .in('status', ['running', 'stopped', 'provisioning'])
+      .in('status', ['running', 'stopped', 'provisioning', 'pending_payment', 'failed'])
       .maybeSingle()
 
     if (!instance) {

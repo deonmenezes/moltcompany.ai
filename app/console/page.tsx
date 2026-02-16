@@ -49,7 +49,13 @@ export default function ConsolePage() {
       },
       body: JSON.stringify({ session_id: sessionId }),
     })
-      .then(r => r.json())
+      .then(async r => {
+        const data = await r.json()
+        if (!r.ok) {
+          console.error('Fulfill error:', data.error)
+        }
+        return data
+      })
       .then(() => {
         // Remove session_id from URL without reload
         window.history.replaceState({}, '', '/console')

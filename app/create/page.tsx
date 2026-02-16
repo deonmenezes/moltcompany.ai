@@ -638,7 +638,7 @@ export default function CreateCompanionPage() {
                     </div>
                     <div>
                       <h3 className="font-display font-bold text-sm uppercase">Verify Your Phone to Publish</h3>
-                      <p className="text-xs text-brand-gray-medium">Phone verification is required to prevent spam</p>
+                      <p className="text-xs text-brand-gray-medium">We&apos;ll send a code via WhatsApp to verify your number</p>
                     </div>
                   </div>
 
@@ -665,7 +665,7 @@ export default function CreateCompanionPage() {
                         disabled={phoneSending}
                         className="comic-btn w-full text-sm py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {phoneSending ? 'SENDING...' : 'SEND VERIFICATION CODE'}
+                        {phoneSending ? 'SENDING...' : 'SEND CODE VIA WHATSAPP'}
                       </button>
                     </div>
                   )}
@@ -673,7 +673,7 @@ export default function CreateCompanionPage() {
                   {phoneStep === 'verify' && (
                     <div className="space-y-3">
                       <p className="text-sm text-brand-gray-medium font-body">
-                        Enter the 6-digit code sent to <strong className="text-black">{phoneInput}</strong>
+                        Enter the 6-digit code sent via WhatsApp to <strong className="text-black">{phoneInput}</strong>
                       </p>
                       <input
                         type="text"

@@ -124,7 +124,7 @@ export default function LoginPage() {
 
               <h2 className="comic-heading text-xl">ENTER PHONE NUMBER</h2>
               <p className="text-sm text-brand-gray-medium font-body">
-                We&apos;ll send a 6-digit verification code via SMS
+                We&apos;ll send a 6-digit verification code via SMS to sign you in
               </p>
 
               <PhoneInput value={phone} onChange={setPhone} autoFocus />

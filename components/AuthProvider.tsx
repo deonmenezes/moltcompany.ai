@@ -65,27 +65,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null }
   }
 
-  const verifyPhoneOtp = async (phone: string, token: string) => {
+  const verifyPhoneOtp = async (phone: string, otp: string) => {
     const { error } = await supabaseBrowser.auth.verifyOtp({
       phone,
-      token,
+      token: otp,
       type: 'sms',
     })
     return { error: error?.message ?? null }
   }
 
   const linkPhone = async (phone: string) => {
-    const { error } = await supabaseBrowser.auth.updateUser({ phone })
-    return { error: error?.message ?? null }
+    try {
+      const token = session?.access_token
+      if (!token) return { error: 'Not signed in' }
+
+      const res = await fetch('/api/phone-verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: 'send', phone }),
+      })
+      const data = await res.json()
+      if (!res.ok) return { error: data.error || 'Failed to send code' }
+      return { error: null }
+    } catch {
+      return { error: 'Failed to send verification code' }
+    }
   }
 
-  const verifyPhoneLink = async (phone: string, token: string) => {
-    const { error } = await supabaseBrowser.auth.verifyOtp({
-      phone,
-      token,
-      type: 'phone_change',
-    })
-    return { error: error?.message ?? null }
+  const verifyPhoneLink = async (phone: string, code: string) => {
+    try {
+      const token = session?.access_token
+      if (!token) return { error: 'Not signed in' }
+
+      const res = await fetch('/api/phone-verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: 'check', phone, code }),
+      })
+      const data = await res.json()
+      if (!res.ok) return { error: data.error || 'Invalid code' }
+
+      // Refresh session to get updated phone
+      await supabaseBrowser.auth.refreshSession()
+      return { error: null }
+    } catch {
+      return { error: 'Failed to verify code' }
+    }
   }
 
   const signOut = async () => {

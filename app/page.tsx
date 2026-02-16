@@ -230,7 +230,7 @@ export default function LandingPage() {
             <span className="yellow-highlight">OPENCLAW MARKETPLACE</span>
           </h1>
           <p className="text-lg text-brand-gray-dark mb-6 max-w-2xl mx-auto font-body">
-            Pick a companion. Connect Telegram. Deploy. Your AI employee works 24/7.
+            Pick a companion. Connect Telegram/Whatsapp. Deploy. Your AI employee works 24/7.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/companions" className="comic-btn text-base inline-block">

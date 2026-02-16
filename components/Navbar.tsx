@@ -71,6 +71,10 @@ export function Navbar() {
                 <Link href="/companions" className={navLinkClass('/companions')}>
                   Explore
                 </Link>
+                <Link href="/tutorials" className={navLinkClass('/tutorials')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Tutorials
+                </Link>
                 <Link href="/sell" className={navLinkClass('/sell')}>
                   Sell
                 </Link>
@@ -145,6 +149,10 @@ export function Navbar() {
                 </Link>
                 <Link href="/companions" className={navLinkClass('/companions')}>
                   Explore
+                </Link>
+                <Link href="/tutorials" className={navLinkClass('/tutorials')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Tutorials
                 </Link>
                 <Link href="/sell" className={navLinkClass('/sell')}>
                   Sell

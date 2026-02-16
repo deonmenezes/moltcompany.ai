@@ -59,7 +59,7 @@ export function Navbar() {
                   Support
                 </Link>
                 <Link href="/company-package" className="font-display text-sm font-black uppercase bg-brand-yellow border-2 border-black px-3 py-1 hover:shadow-comic-sm transition no-underline">
-                  $300 DEAL
+                  Offer
                 </Link>
                 <Link href="/create" className="comic-btn text-sm py-1.5 px-4 no-underline">
                   + CREATE
@@ -95,7 +95,7 @@ export function Navbar() {
                   Support
                 </Link>
                 <Link href="/company-package" className="font-display text-sm font-black uppercase bg-brand-yellow border-2 border-black px-3 py-1 hover:shadow-comic-sm transition no-underline">
-                  $300 DEAL
+                  Offer
                 </Link>
                 <Link
                   href="/login"

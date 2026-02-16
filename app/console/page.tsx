@@ -4,6 +4,8 @@ import { useAuth } from '@/components/AuthProvider'
 import { useEffect, useState } from 'react'
 import { CompanionCard } from '@/components/CompanionCard'
 import Link from 'next/link'
+import Image from 'next/image'
+import { bots } from '@/lib/bots'
 
 export default function ConsolePage() {
   const { user, session, loading } = useAuth()
@@ -108,15 +110,52 @@ export default function ConsolePage() {
             ))}
           </div>
         ) : (
-          <div className="comic-card p-12 text-center">
-            <div className="text-5xl mb-4">&#128188;</div>
-            <h3 className="comic-heading text-xl mb-3">NO COMPANIONS YET</h3>
-            <p className="text-brand-gray-medium mb-6 max-w-md mx-auto">
-              Hire your first AI companion to get started. Each companion runs 24/7 on its own dedicated server.
-            </p>
-            <Link href="/companions" className="comic-btn inline-block">
-              BROWSE COMPANIONS
-            </Link>
+          <div>
+            <div className="text-center mb-8">
+              <h3 className="comic-heading text-xl mb-2">RECOMMENDED FOR YOU</h3>
+              <p className="text-brand-gray-medium text-sm">
+                Hire your first AI companion to get started. Each one runs 24/7 on its own dedicated server.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bots.slice(0, 6).map(bot => (
+                <div key={bot.id} className="comic-card-hover flex flex-col">
+                  <div className="h-2" style={{ backgroundColor: bot.color }} />
+                  <Link href={`/companion/${bot.id}`} className="p-5 pb-2 flex flex-col items-center text-center hover:bg-gray-50/50 transition">
+                    <Image
+                      src={bot.avatar}
+                      alt={bot.characterName}
+                      width={64}
+                      height={64}
+                      className="avatar-comic rounded-full bg-brand-gray mb-3"
+                    />
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <h4 className="comic-heading text-lg">{bot.characterName}</h4>
+                      <span className="text-green-500 text-xs" title="Verified">&#10003;</span>
+                    </div>
+                    <span
+                      className="inline-block px-2 py-0.5 text-[10px] font-display font-bold uppercase border-2 border-black"
+                      style={{ backgroundColor: bot.color, color: bot.color === '#FFD600' ? '#000' : '#fff' }}
+                    >
+                      {bot.characterRole}
+                    </span>
+                    <p className="font-body text-xs text-brand-gray-dark mt-3 line-clamp-2">
+                      {bot.tagline}
+                    </p>
+                  </Link>
+                  <div className="p-5 pt-3 mt-auto">
+                    <Link href={`/deploy?model=${bot.id}`} className="comic-btn block text-center w-full text-sm">
+                      HIRE — $40/MO
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Link href="/companions" className="comic-btn-outline inline-block text-sm">
+                VIEW ALL COMPANIONS
+              </Link>
+            </div>
           </div>
         )}
 

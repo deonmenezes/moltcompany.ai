@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       .from('instances')
       .select('*')
       .eq('user_id', user.id)
-      .not('status', 'in', '("terminated","payment_failed","pending_payment")')
+      .not('status', 'in', '("terminated","payment_failed")')
       .order('created_at', { ascending: false })
 
     // Sync AWS state for running/provisioning instances

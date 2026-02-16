@@ -33,7 +33,7 @@ const statusConfig: Record<string, { dot: string; label: string; bg: string }> =
   failed: { dot: 'bg-red-500', label: 'FAILED', bg: 'bg-red-50' },
   payment_failed: { dot: 'bg-red-500', label: 'PAYMENT FAILED', bg: 'bg-red-50' },
   terminated: { dot: 'bg-gray-700', label: 'TERMINATED', bg: 'bg-gray-100' },
-  pending_payment: { dot: 'bg-yellow-500', label: 'PENDING', bg: 'bg-yellow-50' },
+  pending_payment: { dot: 'bg-yellow-500 animate-pulse', label: 'PROCESSING', bg: 'bg-yellow-50' },
 }
 
 function formatModel(modelName: string | null): string {

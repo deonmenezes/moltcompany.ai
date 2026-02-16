@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/components/AuthProvider'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { CompanionCard } from '@/components/CompanionCard'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -9,6 +9,18 @@ import { useSearchParams } from 'next/navigation'
 import { bots } from '@/lib/bots'
 
 export default function ConsolePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center pt-16">
+        <div className="animate-spin h-8 w-8 border-3 border-brand-yellow border-t-transparent rounded-full mx-auto" />
+      </div>
+    }>
+      <ConsoleContent />
+    </Suspense>
+  )
+}
+
+function ConsoleContent() {
   const { user, session, loading } = useAuth()
   const [instances, setInstances] = useState<any[]>([])
   const [subscription, setSubscription] = useState<any>(null)

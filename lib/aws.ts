@@ -209,8 +209,6 @@ docker run -d \
   -e TELEGRAM_ACTIONS_STICKER=true \
   -e OPENCLAW_PRIMARY_MODEL="${modelName}" \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \
-  -e AUTH_USERNAME="admin" \
-  -e AUTH_PASSWORD="${gatewayToken}" \
   coollabsio/openclaw:latest
 
 # Wait for openclaw container to be ready, then link Telegram bot

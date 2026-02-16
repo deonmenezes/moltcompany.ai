@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-import { getInstancePublicIp, getInstanceState, stopInstance, startInstance, terminateInstance } from '@/lib/aws'
+import { getInstancePublicIp, getInstanceState, stopInstance, startInstance, terminateInstance, launchInstance } from '@/lib/aws'
+import { encrypt, decrypt } from '@/lib/encryption'
+import { stripe } from '@/lib/stripe'
 
 export async function GET(req: NextRequest) {
   try {
@@ -27,7 +29,7 @@ export async function GET(req: NextRequest) {
       .from('instances')
       .select('*')
       .eq('user_id', user.id)
-      .not('status', 'in', '("terminated","payment_failed")')
+      .not('status', 'in', '("terminated","payment_failed","pending_payment")')
       .order('created_at', { ascending: false })
 
     // Sync AWS state for running/provisioning instances
@@ -87,7 +89,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { action, instance_id } = await req.json()
+    const { action, instance_id, new_api_key } = await req.json()
 
     if (!instance_id) {
       return NextResponse.json({ error: 'instance_id required' }, { status: 400 })
@@ -98,7 +100,7 @@ export async function PATCH(req: NextRequest) {
 
     const { data: user } = await supabase
       .from('users')
-      .select('id')
+      .select('id, stripe_customer_id')
       .eq(lookupField, lookupValue)
       .maybeSingle()
 
@@ -106,6 +108,100 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // For update_key, we need all instance fields to redeploy
+    if (action === 'update_key') {
+      if (!new_api_key || typeof new_api_key !== 'string' || new_api_key.trim().length < 10) {
+        return NextResponse.json({ error: 'Valid API key required' }, { status: 400 })
+      }
+
+      const { data: inst } = await supabase
+        .from('instances')
+        .select('*')
+        .eq('id', instance_id)
+        .eq('user_id', user.id)
+        .in('status', ['running', 'stopped', 'provisioning'])
+        .maybeSingle()
+
+      if (!inst) {
+        return NextResponse.json({ error: 'No active instance' }, { status: 404 })
+      }
+
+      // Terminate old EC2
+      if (inst.ec2_instance_id) {
+        try { await terminateInstance(inst.ec2_instance_id) } catch { /* continue */ }
+      }
+
+      // Launch new EC2 with updated API key
+      const { instanceId: newEc2Id } = await launchInstance({
+        userId: user.id,
+        modelProvider: inst.model_provider,
+        modelName: inst.model_name,
+        apiKey: new_api_key.trim(),
+        telegramToken: decrypt(inst.telegram_bot_token),
+        gatewayToken: inst.gateway_token,
+        characterFiles: inst.character_files || undefined,
+      })
+
+      // Update instance record
+      await supabase
+        .from('instances')
+        .update({
+          ec2_instance_id: newEc2Id,
+          llm_api_key: encrypt(new_api_key.trim()),
+          status: 'provisioning',
+          public_ip: null,
+        })
+        .eq('id', instance_id)
+
+      return NextResponse.json({ success: true })
+    }
+
+    // For cancel_subscription
+    if (action === 'cancel_subscription') {
+      if (!user.stripe_customer_id) {
+        return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
+      }
+
+      // Find active subscription for this customer
+      const subscriptions = await stripe.subscriptions.list({
+        customer: user.stripe_customer_id,
+        status: 'active',
+        limit: 10,
+      })
+
+      // Cancel all active subscriptions
+      for (const sub of subscriptions.data) {
+        await stripe.subscriptions.cancel(sub.id)
+      }
+
+      // Update subscription status in DB
+      await supabase
+        .from('subscriptions')
+        .update({ status: 'canceled' })
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+
+      // Terminate the instance
+      const { data: inst } = await supabase
+        .from('instances')
+        .select('ec2_instance_id')
+        .eq('id', instance_id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (inst?.ec2_instance_id) {
+        try { await terminateInstance(inst.ec2_instance_id) } catch { /* continue */ }
+      }
+
+      await supabase
+        .from('instances')
+        .update({ status: 'terminated' })
+        .eq('id', instance_id)
+
+      return NextResponse.json({ success: true })
+    }
+
+    // Standard start/stop actions
     const { data: instance } = await supabase
       .from('instances')
       .select('ec2_instance_id, status')

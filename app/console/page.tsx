@@ -102,6 +102,7 @@ export default function ConsolePage() {
                 key={instance.id}
                 instance={instance}
                 onAction={handleAction}
+                onRefresh={fetchInstances}
                 actionLoading={actionLoading}
               />
             ))}

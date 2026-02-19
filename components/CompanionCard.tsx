@@ -214,6 +214,40 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
         </div>
       </div>
 
+      {/* Teams endpoint (only for Teams channel, when instance has a public IP) */}
+      {instance.channel === 'teams' && instance.public_ip && instance.status === 'running' && (
+        <div className="mx-5 mb-4 p-3 border-3 border-blue-400 bg-blue-50">
+          <div className="text-[10px] font-display font-bold uppercase text-blue-700 mb-1">Teams Messaging Endpoint</div>
+          <div className="flex items-center justify-between gap-2">
+            <code className="text-[11px] text-black font-mono block truncate">
+              http://{instance.public_ip}:3978/api/messages
+            </code>
+            <button
+              onClick={() => navigator.clipboard.writeText(`http://${instance.public_ip}:3978/api/messages`)}
+              className="text-[10px] font-display font-bold uppercase px-2 py-1 border-2 border-black hover:bg-brand-yellow transition flex-shrink-0"
+            >
+              COPY
+            </button>
+          </div>
+          <p className="text-[10px] text-blue-600 mt-2">
+            Paste this URL as the &quot;Messaging endpoint&quot; in your Azure Bot resource &rarr; Configuration.
+          </p>
+        </div>
+      )}
+
+      {/* WhatsApp status (only for WhatsApp channel, when instance is running) */}
+      {instance.channel === 'whatsapp' && instance.status === 'running' && (
+        <div className="mx-5 mb-4 p-3 border-3 border-green-400 bg-green-50">
+          <div className="text-[10px] font-display font-bold uppercase text-green-700 mb-1">WhatsApp Connected</div>
+          <p className="text-[10px] text-green-600">
+            Messages to your WhatsApp Business number are routed through MoltCompany.ai to this companion.
+          </p>
+          <p className="text-[10px] text-green-600 mt-1">
+            Make sure the webhook URL in your Meta App Dashboard points to: <code className="font-mono">https://moltcompany.ai/api/whatsapp/webhook</code>
+          </p>
+        </div>
+      )}
+
       {/* Gateway token */}
       {instance.gateway_token && (
         <div className="mx-5 mb-4 p-3 border-2 border-dashed border-brand-gray-medium/30 bg-gray-50">

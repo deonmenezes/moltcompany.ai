@@ -6,6 +6,9 @@ import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { CompanionSelector } from '@/components/ModelSelector'
 import { TelegramConnect } from '@/components/TelegramConnect'
+import { TeamsConnect } from '@/components/TeamsConnect'
+import { WhatsAppConnect } from '@/components/WhatsAppConnect'
+import { ChannelSelector } from '@/components/ChannelSelector'
 import { ApiKeyInput } from '@/components/ApiKeyInput'
 import { DeployButton } from '@/components/DeployButton'
 import { CharacterEditor } from '@/components/CharacterEditor'
@@ -24,7 +27,7 @@ function AvatarFallback({ name, color, size }: { name: string; color: string; si
   )
 }
 
-type StepId = 'companion' | 'model' | 'telegram' | 'personality' | 'deploy'
+type StepId = 'companion' | 'model' | 'channel' | 'personality' | 'deploy'
 
 function DeployForm() {
   const { user, session, loading } = useAuth()
@@ -41,12 +44,16 @@ function DeployForm() {
   const [selectedModelId, setSelectedModelId] = useState(llmProviders[0].models[0].id)
   const [selectedChannel, setSelectedChannel] = useState('telegram')
   const [telegramToken, setTelegramToken] = useState('')
+  const [teamsAppId, setTeamsAppId] = useState('')
+  const [teamsAppPassword, setTeamsAppPassword] = useState('')
+  const [whatsappPhoneId, setWhatsappPhoneId] = useState('')
+  const [whatsappAccessToken, setWhatsappAccessToken] = useState('')
   const [apiKey, setApiKey] = useState('')
   const [characterFiles, setCharacterFiles] = useState<CharacterFiles>(() => getCharacterFilesForBot(initialBot.id))
 
   const allSteps: StepId[] = hasPreselected
-    ? ['model', 'telegram', 'personality', 'deploy']
-    : ['companion', 'model', 'telegram', 'personality', 'deploy']
+    ? ['model', 'channel', 'personality', 'deploy']
+    : ['companion', 'model', 'channel', 'personality', 'deploy']
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const currentStep = allSteps[currentStepIndex]
@@ -54,7 +61,10 @@ function DeployForm() {
   const currentProvider = llmProviders.find(p => p.id === selectedProvider) || llmProviders[0]
   const selectedModel = currentProvider.models.find(m => m.id === selectedModelId) || currentProvider.models[0]
 
-  if (loading) {
+  // DEV ONLY: bypass auth for local UI testing (remove before production)
+  const isDev = process.env.NODE_ENV === 'development'
+
+  if (loading && !isDev) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center pt-16">
         <div className="animate-spin h-8 w-8 border-3 border-brand-yellow border-t-transparent rounded-full" />
@@ -62,7 +72,7 @@ function DeployForm() {
     )
   }
 
-  if (!user) {
+  if (!user && !isDev) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center pt-16">
         <div className="text-center">
@@ -80,7 +90,11 @@ function DeployForm() {
     switch (currentStep) {
       case 'companion': return !!selectedBot
       case 'model': return !!selectedProvider && !!selectedModelId && !!apiKey
-      case 'telegram': return !!telegramToken
+      case 'channel':
+        if (selectedChannel === 'telegram') return !!telegramToken
+        if (selectedChannel === 'teams') return !!teamsAppId && !!teamsAppPassword
+        if (selectedChannel === 'whatsapp') return !!whatsappPhoneId && !!whatsappAccessToken
+        return false
       case 'personality': return true
       case 'deploy': return true
       default: return false
@@ -119,7 +133,11 @@ function DeployForm() {
         model_provider: selectedProvider,
         model_name: selectedModelId,
         channel: selectedChannel,
-        telegram_bot_token: telegramToken,
+        telegram_bot_token: selectedChannel === 'telegram' ? telegramToken : undefined,
+        teams_app_id: selectedChannel === 'teams' ? teamsAppId : undefined,
+        teams_app_password: selectedChannel === 'teams' ? teamsAppPassword : undefined,
+        whatsapp_phone_id: selectedChannel === 'whatsapp' ? whatsappPhoneId : undefined,
+        whatsapp_access_token: selectedChannel === 'whatsapp' ? whatsappAccessToken : undefined,
         llm_api_key: apiKey,
         character_files: characterFiles,
         bot_id: selectedBot.id,
@@ -140,7 +158,7 @@ function DeployForm() {
   const stepLabels: Record<StepId, string> = {
     companion: 'Companion',
     model: 'AI Model',
-    telegram: 'Telegram',
+    channel: 'Channel',
     personality: 'Personality',
     deploy: 'Deploy',
   }
@@ -274,12 +292,32 @@ function DeployForm() {
             </div>
           )}
 
-          {/* STEP: Telegram */}
-          {currentStep === 'telegram' && (
+          {/* STEP: Channel */}
+          {currentStep === 'channel' && (
             <div>
-              <h2 className="comic-heading text-xl mb-2">CONNECT TELEGRAM</h2>
-              <p className="text-sm text-brand-gray-medium mb-6 font-body">Create a Telegram bot and paste the token below.</p>
-              <TelegramConnect token={telegramToken} onSave={setTelegramToken} />
+              <h2 className="comic-heading text-xl mb-2">CHOOSE CHANNEL</h2>
+              <p className="text-sm text-brand-gray-medium mb-6 font-body">Select where your companion will live and connect it.</p>
+              <ChannelSelector selected={selectedChannel} onSelect={setSelectedChannel} />
+
+              <div className="mt-8">
+                {selectedChannel === 'telegram' && (
+                  <TelegramConnect token={telegramToken} onSave={setTelegramToken} />
+                )}
+                {selectedChannel === 'teams' && (
+                  <TeamsConnect
+                    appId={teamsAppId}
+                    appPassword={teamsAppPassword}
+                    onSave={(id, pw) => { setTeamsAppId(id); setTeamsAppPassword(pw) }}
+                  />
+                )}
+                {selectedChannel === 'whatsapp' && (
+                  <WhatsAppConnect
+                    phoneNumberId={whatsappPhoneId}
+                    accessToken={whatsappAccessToken}
+                    onSave={(phoneId, token) => { setWhatsappPhoneId(phoneId); setWhatsappAccessToken(token) }}
+                  />
+                )}
+              </div>
             </div>
           )}
 
@@ -318,7 +356,7 @@ function DeployForm() {
                 <div className="h-px bg-gray-200" />
                 <div className="flex items-center justify-between">
                   <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">Channel</span>
-                  <span className="font-display font-bold text-sm">Telegram</span>
+                  <span className="font-display font-bold text-sm">{selectedChannel === 'teams' ? 'Microsoft Teams' : selectedChannel === 'whatsapp' ? 'WhatsApp' : 'Telegram'}</span>
                 </div>
                 <div className="h-px bg-gray-200" />
                 <div className="flex items-center justify-between">
@@ -327,7 +365,7 @@ function DeployForm() {
                 </div>
                 <div className="h-px bg-gray-200" />
                 <div className="flex items-center justify-between">
-                  <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">Telegram Bot</span>
+                  <span className="font-display font-bold text-sm uppercase text-brand-gray-medium">{selectedChannel === 'teams' ? 'Teams Bot' : selectedChannel === 'whatsapp' ? 'WhatsApp Number' : 'Telegram Bot'}</span>
                   <span className="font-display font-bold text-sm text-green-700">{'\u2713'} Connected</span>
                 </div>
               </div>

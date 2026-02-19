@@ -26,6 +26,10 @@ export type Instance = {
   model_name: string | null
   channel: string
   telegram_bot_token: string | null
+  teams_app_id: string | null
+  teams_app_password: string | null
+  whatsapp_phone_id: string | null
+  whatsapp_access_token: string | null
   llm_api_key: string | null
   gateway_token: string | null
   region: string

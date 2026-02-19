@@ -250,15 +250,19 @@ ${apiKeyLine}  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \\
 ${extraEnvFlags ? '  ' + extraEnvFlags + ' \\\n' : ''}  coollabsio/openclaw:latest
 
-# Fix OpenClaw bug: bedrockDiscovery.providerFilter must be array not string
+# Create fix script for OpenClaw bedrockDiscovery bug (providerFilter must be array)
+cat > /opt/fix-bedrock.sh <<'FIXEOF'
+#!/bin/sh
+sed -i 's/"providerFilter": "\\([^"]*\\)"/"providerFilter": ["\\1"]/' /data/.openclaw/openclaw.json 2>/dev/null || true
+FIXEOF
+chmod +x /opt/fix-bedrock.sh
+
 # Keep fixing until the container stays up (configure may overwrite on restarts)
 (
   for attempt in $(seq 1 10); do
     sleep 15
     echo "Fix attempt $attempt: correcting providerFilter..."
-    docker run --rm -v openclaw-data:/data alpine sh -c '
-      sed -i "s/\"providerFilter\": \"\([^\"]*\)\"/\"providerFilter\": [\"\1\"]/" /data/.openclaw/openclaw.json 2>/dev/null || true
-    '
+    docker run --rm -v openclaw-data:/data -v /opt/fix-bedrock.sh:/fix.sh:ro alpine /fix.sh
     sleep 20
     if docker exec openclaw openclaw --version >/dev/null 2>&1; then
       echo "OpenClaw is running! Linking Telegram..."

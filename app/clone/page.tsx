@@ -170,6 +170,46 @@ function CloneForm() {
 
       <FloatingLobsters />
 
+      {/* Desktop-only marketing callout with arrow */}
+      <div className="hidden lg:block fixed right-[calc(50%-380px-220px)] top-[38%] z-20 animate-callout-bounce">
+        <div className="relative">
+          {/* Speech bubble */}
+          <div className="bg-brand-yellow border-3 border-black px-5 py-4 shadow-comic max-w-[200px] relative">
+            <p className="font-display font-black text-black text-sm uppercase leading-tight">
+              Clone yourself in OpenClaw for FREE!
+            </p>
+            <p className="text-xs text-black/60 font-body mt-1">
+              It takes 60 seconds
+            </p>
+          </div>
+          {/* Curved arrow pointing to the form */}
+          <div className="animate-arrow-wiggle mt-2 ml-auto mr-2">
+            <svg width="60" height="80" viewBox="0 0 60 80" fill="none" className="text-brand-yellow">
+              <path
+                d="M50 5C45 5 20 8 15 30C10 52 25 65 35 70"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray="6 4"
+                fill="none"
+              />
+              <path
+                d="M28 62L35 72L40 63"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </div>
+          {/* Lobster accent */}
+          <div className="absolute -top-4 -right-4 text-2xl animate-bounce">
+            🦞
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-2xl mx-auto relative z-10">
 
         {/* Hero */}

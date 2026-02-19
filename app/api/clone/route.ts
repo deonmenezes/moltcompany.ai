@@ -26,18 +26,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { telegram_bot_token, teams_app_id, teams_app_password, whatsapp_phone_id, whatsapp_access_token, channel: reqChannel, character_files } = body
-    const channel = reqChannel || 'telegram'
+    const { telegram_bot_token, character_files } = body
 
-    // Validate channel-specific credentials
-    if (channel === 'telegram' && !telegram_bot_token) {
+    if (!telegram_bot_token) {
       return NextResponse.json({ error: 'Telegram bot token is required' }, { status: 400 })
-    }
-    if (channel === 'teams' && (!teams_app_id || !teams_app_password)) {
-      return NextResponse.json({ error: 'Teams App ID and App Password are required' }, { status: 400 })
-    }
-    if (channel === 'whatsapp' && (!whatsapp_phone_id || !whatsapp_access_token)) {
-      return NextResponse.json({ error: 'WhatsApp Phone Number ID and Access Token are required' }, { status: 400 })
     }
 
     // Gemini API key for clone deployments
@@ -106,12 +98,8 @@ export async function POST(req: NextRequest) {
         status: 'provisioning',
         model_provider: PLATFORM_MODEL_PROVIDER,
         model_name: PLATFORM_MODEL_NAME,
-        channel,
-        telegram_bot_token: channel === 'telegram' ? encrypt(telegram_bot_token) : null,
-        teams_app_id: channel === 'teams' ? encrypt(teams_app_id) : null,
-        teams_app_password: channel === 'teams' ? encrypt(teams_app_password) : null,
-        whatsapp_phone_id: channel === 'whatsapp' ? whatsapp_phone_id : null,
-        whatsapp_access_token: channel === 'whatsapp' ? encrypt(whatsapp_access_token) : null,
+        channel: 'telegram',
+        telegram_bot_token: encrypt(telegram_bot_token),
         llm_api_key: encrypt(geminiApiKey),
         gateway_token: gatewayToken,
         character_files: character_files || null,
@@ -136,16 +124,9 @@ export async function POST(req: NextRequest) {
         modelProvider: PLATFORM_MODEL_PROVIDER,
         modelName: PLATFORM_MODEL_NAME,
         apiKey: geminiApiKey,
-        telegramToken: channel === 'telegram' ? telegram_bot_token : '',
+        telegramToken: telegram_bot_token,
         gatewayToken,
         characterFiles: character_files || undefined,
-        channel,
-        teamsCredentials: channel === 'teams'
-          ? { appId: teams_app_id, appPassword: teams_app_password }
-          : undefined,
-        whatsappCredentials: channel === 'whatsapp'
-          ? { phoneNumberId: whatsapp_phone_id, accessToken: whatsapp_access_token }
-          : undefined,
       })
 
       await supabase

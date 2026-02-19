@@ -205,7 +205,7 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
     "bedrockDiscovery": {
       "enabled": true,
       "region": "${bedrockCredentials.region}",
-      "providerFilter": ["anthropic"]
+      "providerFilter": ["amazon"]
     }
   }` : ''}
 }

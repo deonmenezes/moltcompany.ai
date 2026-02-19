@@ -9,7 +9,7 @@ export const maxDuration = 60
 
 // Free clone deployment — uses AWS Bedrock via platform AWS credentials
 const PLATFORM_MODEL_PROVIDER = 'amazon-bedrock'
-const PLATFORM_MODEL_NAME = 'amazon-bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0'
+const PLATFORM_MODEL_NAME = 'amazon-bedrock/us.amazon.nova-pro-v1:0'
 
 export async function POST(req: NextRequest) {
   try {

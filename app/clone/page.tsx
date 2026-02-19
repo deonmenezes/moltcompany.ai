@@ -1,11 +1,13 @@
 'use client'
 
 import { useAuth } from '@/components/AuthProvider'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { TelegramConnect } from '@/components/TelegramConnect'
 import { CHARACTER_FILE_NAMES, type CharacterFiles } from '@/lib/character-files'
 import { supabaseBrowser } from '@/lib/supabase-browser'
+
+type DeployPhase = 'idle' | 'calling' | 'booting' | 'done'
 
 function buildCharacterFiles(aboutText: string): CharacterFiles {
   const files = {} as CharacterFiles
@@ -91,8 +93,12 @@ function CloneForm() {
   const [aboutText, setAboutText] = useState('')
   const [telegramToken, setTelegramToken] = useState('')
   const [deploying, setDeploying] = useState(false)
+  const [deployPhase, setDeployPhase] = useState<DeployPhase>('idle')
+  const [bootProgress, setBootProgress] = useState(0)
+  const [redirectUrl, setRedirectUrl] = useState('')
   const [error, setError] = useState('')
   const [showSignIn, setShowSignIn] = useState(false)
+  const bootTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Restore form data after Google OAuth redirect
   useEffect(() => {
@@ -120,9 +126,32 @@ function CloneForm() {
     })
   }
 
+  // Clean up boot timer on unmount
+  useEffect(() => {
+    return () => {
+      if (bootTimerRef.current) clearInterval(bootTimerRef.current)
+    }
+  }, [])
+
+  const startBootSequence = (url: string) => {
+    setRedirectUrl(url)
+    setDeployPhase('booting')
+    setBootProgress(0)
+    let progress = 0
+    bootTimerRef.current = setInterval(() => {
+      progress += 4
+      setBootProgress(progress)
+      if (progress >= 100) {
+        if (bootTimerRef.current) clearInterval(bootTimerRef.current)
+        setDeployPhase('done')
+      }
+    }, 1000) // 25 ticks * 1s = 25 seconds
+  }
+
   const handleDeploy = async () => {
     setError('')
     setDeploying(true)
+    setDeployPhase('calling')
 
     try {
       const characterFiles = buildCharacterFiles(aboutText)
@@ -142,14 +171,16 @@ function CloneForm() {
       const data = await res.json()
 
       if (data.redirect) {
-        window.location.href = data.redirect
+        startBootSequence(data.redirect)
       } else {
         setError(data.error || 'Something went wrong')
+        setDeploying(false)
+        setDeployPhase('idle')
       }
     } catch {
       setError('Failed to start deployment')
-    } finally {
       setDeploying(false)
+      setDeployPhase('idle')
     }
   }
 
@@ -322,6 +353,130 @@ function CloneForm() {
           Your clone runs 24/7 on dedicated infrastructure &middot; Powered by Gemini
         </p>
       </div>
+
+      {/* Deployment progress overlay */}
+      {deployPhase !== 'idle' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a1a]/95 backdrop-blur-md">
+          <div className="text-center max-w-md mx-4">
+
+            {/* Phase: calling API */}
+            {deployPhase === 'calling' && (
+              <>
+                <div className="w-20 h-20 mx-auto mb-6 border-4 border-green-500/30 border-t-green-400 rounded-full animate-spin" />
+                <h2 className="comic-heading text-2xl text-white mb-2">SETTING UP...</h2>
+                <p className="text-gray-400 font-body text-sm">
+                  Preparing your clone infrastructure
+                </p>
+              </>
+            )}
+
+            {/* Phase: booting (25s countdown) */}
+            {deployPhase === 'booting' && (
+              <>
+                <div className="relative w-24 h-24 mx-auto mb-6">
+                  {/* Track */}
+                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
+                    <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(34,197,94,0.15)" strokeWidth="6" />
+                    <circle
+                      cx="48" cy="48" r="42" fill="none"
+                      stroke="#22c55e"
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 42}
+                      strokeDashoffset={2 * Math.PI * 42 * (1 - bootProgress / 100)}
+                      className="transition-all duration-1000 ease-linear"
+                    />
+                  </svg>
+                  {/* Spinning inner ring */}
+                  <div className="absolute inset-3 border-3 border-green-500/20 border-t-green-400 rounded-full animate-spin" />
+                  {/* Percentage */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="font-display font-black text-green-400 text-lg">{bootProgress}%</span>
+                  </div>
+                </div>
+                <h2 className="comic-heading text-2xl text-white mb-2">DEPLOYING YOUR CLONE</h2>
+                <p className="text-gray-400 font-body text-sm mb-4">
+                  Spinning up your dedicated server...
+                </p>
+                <div className="space-y-2 text-left max-w-xs mx-auto">
+                  <div className="flex items-center gap-2">
+                    <span className={bootProgress >= 10 ? 'text-green-400' : 'text-gray-600'}>
+                      {bootProgress >= 10 ? '\u2713' : '\u25CB'}
+                    </span>
+                    <span className={`font-body text-sm ${bootProgress >= 10 ? 'text-green-400' : 'text-gray-500'}`}>
+                      Instance launched
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={bootProgress >= 35 ? 'text-green-400' : 'text-gray-600'}>
+                      {bootProgress >= 35 ? '\u2713' : '\u25CB'}
+                    </span>
+                    <span className={`font-body text-sm ${bootProgress >= 35 ? 'text-green-400' : 'text-gray-500'}`}>
+                      Installing OpenClaw
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={bootProgress >= 65 ? 'text-green-400' : 'text-gray-600'}>
+                      {bootProgress >= 65 ? '\u2713' : '\u25CB'}
+                    </span>
+                    <span className={`font-body text-sm ${bootProgress >= 65 ? 'text-green-400' : 'text-gray-500'}`}>
+                      Connecting Telegram bot
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={bootProgress >= 90 ? 'text-green-400' : 'text-gray-600'}>
+                      {bootProgress >= 90 ? '\u2713' : '\u25CB'}
+                    </span>
+                    <span className={`font-body text-sm ${bootProgress >= 90 ? 'text-green-400' : 'text-gray-500'}`}>
+                      Loading your personality
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Phase: done */}
+            {deployPhase === 'done' && (
+              <>
+                {/* Green tick */}
+                <div className="w-24 h-24 mx-auto mb-6 bg-green-500 rounded-full flex items-center justify-center animate-bounce-once">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <h2 className="comic-heading text-3xl text-green-400 mb-2">DEPLOYED!</h2>
+                <p className="text-gray-300 font-body text-lg mb-1">
+                  Your clone is live and ready.
+                </p>
+                <p className="text-gray-400 font-body text-sm mb-8">
+                  Open Telegram and start chatting with your bot!
+                </p>
+                <div className="flex flex-col gap-3 items-center">
+                  <a
+                    href={`https://t.me/${telegramToken.split(':')[0] || ''}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="comic-btn text-lg py-4 px-10 flex items-center gap-3 no-underline"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                    </svg>
+                    TEST IT ON TELEGRAM
+                  </a>
+                  {redirectUrl && (
+                    <a
+                      href={redirectUrl}
+                      className="text-sm text-gray-500 hover:text-brand-yellow font-body transition underline"
+                    >
+                      Go to dashboard
+                    </a>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

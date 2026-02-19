@@ -252,3 +252,26 @@ body {
 .animate-arrow-wiggle {
   animation: arrowWiggle 2s ease-in-out infinite;
 }
+
+/* Deploy success tick bounce */
+@keyframes bounceOnce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-once {
+  animation: bounceOnce 0.6s ease-out forwards;
+}

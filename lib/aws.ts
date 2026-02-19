@@ -108,6 +108,10 @@ export async function launchInstance({
   const amiId = customAmiId || await getUbuntuAmi()
 
   const apiKeyEnvVar = MODEL_ENV_MAP[modelProvider] || 'ANTHROPIC_API_KEY'
+  // Bedrock uses AWS creds (passed via extraEnvVars), not a separate API key
+  const apiKeyLine = modelProvider === 'bedrock'
+    ? ''
+    : `  -e ${apiKeyEnvVar}="${apiKey}" \\\n`
 
   // Build extra env var flags for Docker (used by Bedrock etc.)
   const extraEnvFlags = Object.entries(extraEnvVars || {})
@@ -208,8 +212,7 @@ docker run -d \
   -e BROWSER_CDP_URL=http://browser:9223 \
   -e BROWSER_DEFAULT_PROFILE=openclaw \
   -e BROWSER_EVALUATE_ENABLED=true \
-  -e ${apiKeyEnvVar}="${apiKey}" \
-  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
+${apiKeyLine}  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
   -e TELEGRAM_DM_POLICY=open \
   -e TELEGRAM_ALLOW_FROM='*' \
   -e TELEGRAM_ACTIONS_REACTIONS=true \
@@ -218,8 +221,25 @@ docker run -d \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \\
 ${extraEnvFlags ? '  ' + extraEnvFlags + ' \\\n' : ''}  coollabsio/openclaw:latest
 
+# Fix OpenClaw bug: bedrockDiscovery.providerFilter must be array, not string
+# Wait for configure to write config, fix it, then restart
+(
+  sleep 20
+  echo "Fixing bedrockDiscovery config if needed..."
+  docker run --rm -v openclaw-data:/data alpine sh -c '
+    if grep -q "\"providerFilter\":" /data/.openclaw/openclaw.json 2>/dev/null; then
+      sed -i "s/\"providerFilter\": \"\([^\"]*\)\"/\"providerFilter\": [\"\1\"]/" /data/.openclaw/openclaw.json
+      echo "Fixed providerFilter to array format"
+    fi
+  '
+  echo "Restarting openclaw with fixed config..."
+  docker restart openclaw
+  sleep 10
+) &
+
 # Wait for openclaw container to be ready, then link Telegram bot
 (
+  sleep 35
   echo "Waiting for openclaw container to be ready..."
   for i in $(seq 1 60); do
     if docker exec openclaw openclaw --version >/dev/null 2>&1; then

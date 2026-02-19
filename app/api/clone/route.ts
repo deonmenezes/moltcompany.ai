@@ -8,8 +8,8 @@ import { rateLimit } from '@/lib/sanitize'
 export const maxDuration = 60
 
 // Free clone deployment — uses AWS Bedrock via platform AWS credentials
-const PLATFORM_MODEL_PROVIDER = 'bedrock'
-const PLATFORM_MODEL_NAME = 'bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0'
+const PLATFORM_MODEL_PROVIDER = 'amazon-bedrock'
+const PLATFORM_MODEL_NAME = 'amazon-bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0'
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +35,9 @@ export async function POST(req: NextRequest) {
     // AWS credentials for Bedrock (same creds used for EC2)
     const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
     const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-    const awsRegion = process.env.AWS_REGION || 'us-east-1'
+    // Bedrock region must be where Claude models are available (us-east-1, us-west-2, etc.)
+    // This is separate from AWS_REGION which may point to the EC2 region (e.g. ap-south-1)
+    const awsBedrockRegion = process.env.AWS_BEDROCK_REGION || 'us-east-1'
 
     if (!awsAccessKeyId || !awsSecretAccessKey) {
       console.error('AWS credentials not configured for Bedrock')
@@ -133,7 +135,7 @@ export async function POST(req: NextRequest) {
         bedrockCredentials: {
           accessKeyId: awsAccessKeyId,
           secretAccessKey: awsSecretAccessKey,
-          region: awsRegion,
+          region: awsBedrockRegion,
         },
       })
 

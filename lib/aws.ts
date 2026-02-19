@@ -158,7 +158,7 @@ chmod 600 /opt/aws-creds/credentials
 
   // Docker flags: AWS env vars (required by entrypoint) + credentials file mount
   const awsCredsDockerFlags = bedrockCredentials
-    ? `  -v /opt/aws-creds:/aws-creds:ro \\\n  -e AWS_SHARED_CREDENTIALS_FILE=/aws-creds/credentials \\\n  -e AWS_CONFIG_FILE=/aws-creds/config \\\n  -e AWS_ACCESS_KEY_ID="${bedrockCredentials.accessKeyId}" \\\n  -e AWS_SECRET_ACCESS_KEY="${bedrockCredentials.secretAccessKey}" \\\n  -e AWS_DEFAULT_REGION="${bedrockCredentials.region}" \\\n`
+    ? `  -v /opt/aws-creds:/aws-creds:ro \\\n  -e AWS_SHARED_CREDENTIALS_FILE=/aws-creds/credentials \\\n  -e AWS_CONFIG_FILE=/aws-creds/config \\\n  -e AWS_ACCESS_KEY_ID="${bedrockCredentials.accessKeyId}" \\\n  -e AWS_SECRET_ACCESS_KEY="${bedrockCredentials.secretAccessKey}" \\\n  -e AWS_REGION="${bedrockCredentials.region}" \\\n`
     : ''
 
   const userData = Buffer.from(`#!/bin/bash
@@ -203,7 +203,9 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
   }${bedrockCredentials ? `,
   "models": {
     "bedrockDiscovery": {
-      "providerFilter": ["bedrock"]
+      "enabled": true,
+      "region": "${bedrockCredentials.region}",
+      "providerFilter": ["anthropic"]
     }
   }` : ''}
 }

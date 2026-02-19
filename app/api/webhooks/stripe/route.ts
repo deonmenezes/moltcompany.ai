@@ -63,14 +63,22 @@ export async function POST(req: NextRequest) {
 
       // Launch EC2 instance
       try {
+        const channel = instance.channel || 'telegram'
         const { instanceId: ec2InstanceId } = await launchInstance({
           userId,
           modelProvider: instance.model_provider!,
           modelName: instance.model_name!,
           apiKey: decrypt(instance.llm_api_key!),
-          telegramToken: decrypt(instance.telegram_bot_token!),
+          telegramToken: channel === 'telegram' ? decrypt(instance.telegram_bot_token!) : '',
           gatewayToken: instance.gateway_token!,
           characterFiles: instance.character_files || undefined,
+          channel,
+          teamsCredentials: channel === 'teams' && instance.teams_app_id && instance.teams_app_password
+            ? { appId: decrypt(instance.teams_app_id), appPassword: decrypt(instance.teams_app_password) }
+            : undefined,
+          whatsappCredentials: channel === 'whatsapp' && instance.whatsapp_phone_id && instance.whatsapp_access_token
+            ? { phoneNumberId: instance.whatsapp_phone_id, accessToken: decrypt(instance.whatsapp_access_token) }
+            : undefined,
         })
 
         await supabase

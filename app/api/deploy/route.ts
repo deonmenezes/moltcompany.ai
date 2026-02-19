@@ -22,10 +22,21 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { model_provider, model_name, channel, telegram_bot_token, llm_api_key, character_files, bot_id } = body
+    const { model_provider, model_name, channel, telegram_bot_token, teams_app_id, teams_app_password, whatsapp_phone_id, whatsapp_access_token, llm_api_key, character_files, bot_id } = body
 
-    if (!model_provider || !model_name || !channel || !telegram_bot_token || !llm_api_key) {
+    if (!model_provider || !model_name || !channel || !llm_api_key) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Validate channel-specific credentials
+    if (channel === 'telegram' && !telegram_bot_token) {
+      return NextResponse.json({ error: 'Telegram bot token is required' }, { status: 400 })
+    }
+    if (channel === 'teams' && (!teams_app_id || !teams_app_password)) {
+      return NextResponse.json({ error: 'Teams App ID and App Password are required' }, { status: 400 })
+    }
+    if (channel === 'whatsapp' && (!whatsapp_phone_id || !whatsapp_access_token)) {
+      return NextResponse.json({ error: 'WhatsApp Phone Number ID and Access Token are required' }, { status: 400 })
     }
 
     // Validate model_provider against allowed providers
@@ -89,7 +100,11 @@ export async function POST(req: NextRequest) {
         model_provider,
         model_name,
         channel,
-        telegram_bot_token: encrypt(telegram_bot_token),
+        telegram_bot_token: channel === 'telegram' ? encrypt(telegram_bot_token) : null,
+        teams_app_id: channel === 'teams' ? encrypt(teams_app_id) : null,
+        teams_app_password: channel === 'teams' ? encrypt(teams_app_password) : null,
+        whatsapp_phone_id: channel === 'whatsapp' ? whatsapp_phone_id : null,
+        whatsapp_access_token: channel === 'whatsapp' ? encrypt(whatsapp_access_token) : null,
         llm_api_key: encrypt(llm_api_key),
         gateway_token: gatewayToken,
         character_files: character_files || null,

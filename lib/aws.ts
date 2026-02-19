@@ -110,7 +110,7 @@ export async function launchInstance({
   const amiId = customAmiId || await getUbuntuAmi()
 
   const apiKeyEnvVar = MODEL_ENV_MAP[modelProvider] || 'ANTHROPIC_API_KEY'
-  // Bedrock uses AWS credentials file (not env vars) to avoid OpenClaw's buggy auto-discovery
+  // Bedrock passes AWS creds as env vars (required by entrypoint check) + credentials file as fallback
   const apiKeyLine = bedrockCredentials
     ? ''
     : `  -e ${apiKeyEnvVar}="${apiKey}" \\\n`
@@ -156,9 +156,9 @@ AWSEOF
 chmod 600 /opt/aws-creds/credentials
 ` : ''
 
-  // Docker volume mount + env vars for AWS credentials file
+  // Docker flags: AWS env vars (required by entrypoint) + credentials file mount
   const awsCredsDockerFlags = bedrockCredentials
-    ? `  -v /opt/aws-creds:/aws-creds:ro \\\n  -e AWS_SHARED_CREDENTIALS_FILE=/aws-creds/credentials \\\n  -e AWS_CONFIG_FILE=/aws-creds/config \\\n`
+    ? `  -v /opt/aws-creds:/aws-creds:ro \\\n  -e AWS_SHARED_CREDENTIALS_FILE=/aws-creds/credentials \\\n  -e AWS_CONFIG_FILE=/aws-creds/config \\\n  -e AWS_ACCESS_KEY_ID="${bedrockCredentials.accessKeyId}" \\\n  -e AWS_SECRET_ACCESS_KEY="${bedrockCredentials.secretAccessKey}" \\\n  -e AWS_DEFAULT_REGION="${bedrockCredentials.region}" \\\n`
     : ''
 
   const userData = Buffer.from(`#!/bin/bash
@@ -200,7 +200,12 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
         "enabled": true
       }
     }
-  }
+  }${bedrockCredentials ? `,
+  "models": {
+    "bedrockDiscovery": {
+      "providerFilter": ["bedrock"]
+    }
+  }` : ''}
 }
 CONFIGEOF
 
@@ -245,19 +250,24 @@ ${apiKeyLine}  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \\
 ${extraEnvFlags ? '  ' + extraEnvFlags + ' \\\n' : ''}  coollabsio/openclaw:latest
 
-# Wait for openclaw container to be ready, then link Telegram bot
+# Fix OpenClaw bug: bedrockDiscovery.providerFilter must be array not string
+# Keep fixing until the container stays up (configure may overwrite on restarts)
 (
-  echo "Waiting for openclaw container to be ready..."
-  for i in $(seq 1 60); do
+  for attempt in $(seq 1 10); do
+    sleep 15
+    echo "Fix attempt $attempt: correcting providerFilter..."
+    docker run --rm -v openclaw-data:/data alpine sh -c '
+      sed -i "s/\"providerFilter\": \"\([^\"]*\)\"/\"providerFilter\": [\"\1\"]/" /data/.openclaw/openclaw.json 2>/dev/null || true
+    '
+    sleep 20
     if docker exec openclaw openclaw --version >/dev/null 2>&1; then
-      echo "OpenClaw is ready, linking Telegram..."
+      echo "OpenClaw is running! Linking Telegram..."
       sleep 15
       docker exec openclaw openclaw telegram link "${telegramToken}" || true
       echo "Telegram link complete."
       break
     fi
-    echo "Attempt $i/60 - waiting 5s..."
-    sleep 5
+    echo "Container not ready yet, retrying..."
   done
 ) &
 `).toString('base64')

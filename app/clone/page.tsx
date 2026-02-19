@@ -45,6 +45,44 @@ Core competencies:
   return files
 }
 
+// Floating lobster component
+function FloatingLobsters() {
+  const lobsters = [
+    { left: '5%', delay: '0s', duration: '12s', size: '2rem', startBottom: '-5%' },
+    { left: '15%', delay: '3s', duration: '15s', size: '1.5rem', startBottom: '-10%' },
+    { left: '25%', delay: '7s', duration: '10s', size: '1.8rem', startBottom: '-8%' },
+    { left: '40%', delay: '1s', duration: '14s', size: '1.3rem', startBottom: '-3%' },
+    { left: '55%', delay: '5s', duration: '11s', size: '2.2rem', startBottom: '-7%' },
+    { left: '65%', delay: '9s', duration: '13s', size: '1.6rem', startBottom: '-12%' },
+    { left: '75%', delay: '2s', duration: '16s', size: '1.4rem', startBottom: '-6%' },
+    { left: '85%', delay: '6s', duration: '12s', size: '2rem', startBottom: '-9%' },
+    { left: '92%', delay: '4s', duration: '14s', size: '1.7rem', startBottom: '-4%' },
+    { left: '35%', delay: '8s', duration: '11s', size: '1.2rem', startBottom: '-11%' },
+    { left: '50%', delay: '10s', duration: '15s', size: '1.9rem', startBottom: '-2%' },
+    { left: '10%', delay: '11s', duration: '13s', size: '1.5rem', startBottom: '-8%' },
+  ]
+
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      {lobsters.map((l, i) => (
+        <div
+          key={i}
+          className="absolute animate-float-lobster"
+          style={{
+            left: l.left,
+            bottom: l.startBottom,
+            animationDelay: l.delay,
+            animationDuration: l.duration,
+            fontSize: l.size,
+          }}
+        >
+          🦞
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function CloneForm() {
   const { user, session, loading } = useAuth()
   const searchParams = useSearchParams()
@@ -117,42 +155,49 @@ function CloneForm() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center pt-16">
+      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center pt-16">
         <div className="animate-spin h-8 w-8 border-3 border-brand-yellow border-t-transparent rounded-full" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white pt-20 pb-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a1a] pt-20 pb-8 px-4 relative overflow-hidden">
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a1a] via-[#0f0f2a] to-[#0a0a1a] pointer-events-none" />
+      {/* Radial glow behind hero */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-yellow/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <FloatingLobsters />
+
+      <div className="max-w-2xl mx-auto relative z-10">
 
         {/* Hero */}
         <div className="text-center mb-6">
-          <h1 className="comic-heading text-4xl md:text-5xl mb-2">
+          <h1 className="comic-heading text-4xl md:text-5xl mb-2 text-white">
             CLONE <span className="yellow-highlight">YOURSELF</span>
           </h1>
-          <p className="text-brand-gray-medium font-body text-lg">
+          <p className="text-gray-400 font-body text-lg">
             Turn yourself into a Telegram AI in 60 seconds.
           </p>
-          <p className="text-brand-gray-light font-body text-sm mt-1">
+          <p className="text-gray-500 font-body text-sm mt-1">
             Completely free. Paste who you are, connect Telegram, go live.
           </p>
         </div>
 
         {/* Failed banner */}
         {failed && (
-          <div className="mb-4 p-3 border-3 border-black bg-red-50">
-            <p className="font-display font-bold text-sm text-red-700">
+          <div className="mb-4 p-3 border-3 border-red-500/50 bg-red-950/50 backdrop-blur-sm">
+            <p className="font-display font-bold text-sm text-red-400">
               DEPLOYMENT FAILED &mdash; Something went wrong. Please try again.
             </p>
           </div>
         )}
 
         {/* SECTION 1: About You */}
-        <div className="comic-card p-5 mb-4">
-          <h2 className="comic-heading text-xl mb-1">1. ABOUT YOU</h2>
-          <p className="text-sm text-brand-gray-medium mb-3 font-body">
+        <div className="comic-card-dark p-5 mb-4 animate-pulse-glow">
+          <h2 className="comic-heading text-xl mb-1 text-brand-yellow">1. ABOUT YOU</h2>
+          <p className="text-sm text-gray-400 mb-3 font-body">
             Paste anything about yourself &mdash; your bio, how you talk, what you care about, your expertise.
           </p>
           <textarea
@@ -161,23 +206,23 @@ function CloneForm() {
             placeholder={"I'm a software engineer who loves building products. I talk casually, use humor, and always try to be helpful. I'm passionate about AI, startups, and good design..."}
             rows={4}
             maxLength={6000}
-            className="w-full px-4 py-3 border-3 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow transition resize-none"
+            className="w-full px-4 py-3 border-3 border-brand-yellow/30 bg-[#0d0d20] text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow/60 transition resize-none"
           />
-          <p className="text-xs text-brand-gray-medium mt-1">{aboutText.length}/6000 characters</p>
+          <p className="text-xs text-gray-500 mt-1">{aboutText.length}/6000 characters</p>
         </div>
 
         {/* SECTION 2: Telegram */}
-        <div className="comic-card p-5 mb-5">
-          <h2 className="comic-heading text-xl mb-1">2. TELEGRAM BOT</h2>
-          <p className="text-sm text-brand-gray-medium mb-3 font-body">
+        <div className="comic-card-dark p-5 mb-5">
+          <h2 className="comic-heading text-xl mb-1 text-brand-yellow">2. TELEGRAM BOT</h2>
+          <p className="text-sm text-gray-400 mb-3 font-body">
             Create a bot on Telegram via @BotFather and paste the token.
           </p>
-          <TelegramConnect token={telegramToken} onSave={setTelegramToken} />
+          <TelegramConnect token={telegramToken} onSave={setTelegramToken} dark />
         </div>
 
         {/* Error */}
         {error && (
-          <div className="mb-4 p-3 border-3 border-red-500 bg-red-50 text-red-700 font-display font-bold text-sm">
+          <div className="mb-4 p-3 border-3 border-red-500/50 bg-red-950/50 text-red-400 font-display font-bold text-sm backdrop-blur-sm">
             {error}
           </div>
         )}
@@ -206,10 +251,10 @@ function CloneForm() {
 
         {/* Sign-in popup */}
         {showSignIn && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSignIn(false)}>
-            <div className="comic-card p-8 max-w-sm w-full mx-4 text-center" onClick={e => e.stopPropagation()}>
-              <h3 className="comic-heading text-2xl mb-2">ALMOST THERE</h3>
-              <p className="text-brand-gray-medium font-body text-sm mb-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowSignIn(false)}>
+            <div className="comic-card-dark p-8 max-w-sm w-full mx-4 text-center border-brand-yellow/40" onClick={e => e.stopPropagation()}>
+              <h3 className="comic-heading text-2xl mb-2 text-white">ALMOST THERE</h3>
+              <p className="text-gray-400 font-body text-sm mb-6">
                 Sign in to deploy your clone
               </p>
               <button
@@ -226,14 +271,14 @@ function CloneForm() {
               </button>
               <button
                 onClick={() => setShowSignIn(false)}
-                className="mt-3 text-sm text-brand-gray-medium hover:text-black font-body"
+                className="mt-3 text-sm text-gray-500 hover:text-white font-body transition"
               >
                 Cancel
               </button>
             </div>
           </div>
         )}
-        <p className="text-xs text-brand-gray-medium text-center mt-2">
+        <p className="text-xs text-gray-600 text-center mt-2">
           Your clone runs 24/7 on dedicated infrastructure &middot; Powered by Gemini
         </p>
       </div>
@@ -244,7 +289,7 @@ function CloneForm() {
 export default function ClonePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center pt-16">
+      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center pt-16">
         <div className="animate-spin h-8 w-8 border-3 border-brand-yellow border-t-transparent rounded-full" />
       </div>
     }>

@@ -178,7 +178,7 @@ function CloneForm() {
             CLONE <span className="yellow-highlight">YOURSELF</span>
           </h1>
           <p className="text-gray-400 font-body text-lg">
-            Turn yourself into a Telegram AI in 60 seconds.
+            Turn yourself into a Openclaw AI in 60 seconds.
           </p>
           <p className="text-gray-500 font-body text-sm mt-1">
             Completely free. Paste who you are, connect Telegram, go live.

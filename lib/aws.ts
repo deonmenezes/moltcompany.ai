@@ -56,6 +56,12 @@ async function getOrCreateSecurityGroup(): Promise<string> {
           ToPort: 8080,
           IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'OpenClaw UI' }],
         },
+        {
+          IpProtocol: 'tcp',
+          FromPort: 3978,
+          ToPort: 3978,
+          IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'Teams Bot Framework webhook' }],
+        },
       ],
     })
   )
@@ -89,21 +95,26 @@ export async function launchInstance({
   modelProvider,
   modelName,
   apiKey,
-  telegramToken,
+  telegramToken = '',
   gatewayToken,
   characterFiles,
   extraEnvVars,
   bedrockCredentials,
+  channel = 'telegram',
+  teamsCredentials,
 }: {
   userId: string
   modelProvider: string
   modelName: string
   apiKey: string
-  telegramToken: string
+  telegramToken?: string
   gatewayToken: string
   characterFiles?: Record<string, string>
   extraEnvVars?: Record<string, string>
   bedrockCredentials?: { accessKeyId: string; secretAccessKey: string; region: string }
+  channel?: string
+  teamsCredentials?: { appId: string; appPassword: string }
+  whatsappCredentials?: { phoneNumberId: string; accessToken: string }
 }) {
   const sgId = await getOrCreateSecurityGroup()
   const customAmiId = process.env.OPENCLAW_AMI_ID
@@ -161,6 +172,102 @@ chmod 600 /opt/aws-creds/credentials
     ? `  -v /opt/aws-creds:/aws-creds:ro \\\n  -e AWS_SHARED_CREDENTIALS_FILE=/aws-creds/credentials \\\n  -e AWS_CONFIG_FILE=/aws-creds/config \\\n  -e AWS_ACCESS_KEY_ID="${bedrockCredentials.accessKeyId}" \\\n  -e AWS_SECRET_ACCESS_KEY="${bedrockCredentials.secretAccessKey}" \\\n  -e AWS_REGION="${bedrockCredentials.region}" \\\n`
     : ''
 
+  // Channel-specific: Telegram env vars for Docker (only when telegram)
+  const telegramDockerEnvVars = channel === 'telegram'
+    ? `  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \\\n  -e TELEGRAM_DM_POLICY=open \\\n  -e TELEGRAM_ALLOW_FROM='*' \\\n  -e TELEGRAM_ACTIONS_REACTIONS=true \\\n  -e TELEGRAM_ACTIONS_STICKER=true \\\n`
+    : ''
+
+  // Channel-specific: openclaw.json plugins section
+  // Telegram uses native OpenClaw plugin; Teams and WhatsApp use central webhooks (no plugin needed)
+  const pluginsConfig = channel === 'telegram'
+    ? `"plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
+  }`
+    : `"plugins": {
+    "entries": {}
+  }`
+
+  // Channel-specific: Teams bridge setup (inline Node.js service on EC2)
+  const teamsBridgeSetup = channel === 'teams' && teamsCredentials ? `
+# --- Teams Bridge Setup ---
+# Install Node.js 20.x for the Teams bridge service
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+
+mkdir -p /opt/teams-bridge
+cat > /opt/teams-bridge/package.json <<'BRIDGEPKGEOF'
+{"name":"teams-bridge","version":"1.0.0","main":"index.js","dependencies":{"botbuilder":"^4.23.1","botframework-connector":"^4.23.1","express":"^4.21.0"}}
+BRIDGEPKGEOF
+
+cat > /opt/teams-bridge/index.js <<'BRIDGEJSEOF'
+const{CloudAdapter,ConfigurationBotFrameworkAuthentication,ActivityTypes}=require("botbuilder"),express=require("express");
+const PORT=parseInt(process.env.BRIDGE_PORT||"3978",10);
+const GW=process.env.OPENCLAW_GATEWAY_URL||"http://localhost:8080";
+const GW_TOKEN=process.env.OPENCLAW_GATEWAY_TOKEN||"";
+const AID=process.env.MICROSOFT_APP_ID||"";
+const auth=new ConfigurationBotFrameworkAuthentication(AID?{MicrosoftAppId:AID,MicrosoftAppPassword:process.env.MICROSOFT_APP_PASSWORD||"",MicrosoftAppType:"SingleTenant"}:{});
+const adapter=new CloudAdapter(auth);
+adapter.onTurnError=async(ctx,err)=>{console.error("[TeamsBot] Error:",err);await ctx.sendActivity("Sorry, something went wrong.")};
+async function chat(text,userId,convId){const r=await fetch(GW+"/api/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json",...(GW_TOKEN?{Authorization:"Bearer "+GW_TOKEN}:{})},body:JSON.stringify({model:"default",messages:[{role:"user",content:text}],user:userId,metadata:{conversationId:convId,source:"teams"}})});if(!r.ok)throw new Error("Gateway "+r.status);const d=await r.json();return d.choices?.[0]?.message?.content||d.response||"No response."}
+async function onMsg(ctx){if(ctx.activity.type!==ActivityTypes.Message)return;const txt=ctx.activity.text||"";if(!txt.trim())return;const uid=ctx.activity.from?.id||"unknown",cid=ctx.activity.conversation?.id||"unknown";console.log("[TeamsBot] From "+uid+": "+txt.substring(0,100));await ctx.sendActivity({type:ActivityTypes.Typing});try{const reply=await chat(txt,uid,cid);await ctx.sendActivity(reply)}catch(e){console.error("[TeamsBot] Gateway error:",e.message);await ctx.sendActivity("Having trouble connecting. Try again shortly.")}}
+const app=express();
+app.use(express.json());
+app.get("/health",(q,s)=>s.json({status:"ok"}));
+app.post("/api/messages",async(q,s)=>{try{await adapter.process(q,s,onMsg)}catch(e){console.error(e);if(!s.headersSent)s.status(500).send()}});
+app.listen(PORT,()=>console.log("[TeamsBot] Bridge on port "+PORT));
+BRIDGEJSEOF
+
+cd /opt/teams-bridge && npm install --production
+
+# Start Teams bridge as a background service
+MICROSOFT_APP_ID="${teamsCredentials.appId}" \\
+MICROSOFT_APP_PASSWORD="${teamsCredentials.appPassword}" \\
+OPENCLAW_GATEWAY_URL="http://localhost:8080" \\
+OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \\
+nohup node /opt/teams-bridge/index.js > /var/log/teams-bridge.log 2>&1 &
+
+# Open port 3978 for Teams Bot Framework webhook (in addition to 8080)
+# Note: For production, use Caddy or nginx with SSL in front of port 3978
+` : ''
+
+  // Channel-specific: post-launch loop
+  const postLaunchLoop = channel === 'telegram'
+    ? `# Keep fixing until the container stays up (configure may overwrite on restarts)
+(
+  for attempt in $(seq 1 10); do
+    sleep 15
+    echo "Fix attempt $attempt: correcting providerFilter..."
+    docker run --rm -v openclaw-data:/data -v /opt/fix-bedrock.sh:/fix.sh:ro alpine /fix.sh
+    sleep 20
+    if docker exec openclaw openclaw --version >/dev/null 2>&1; then
+      echo "OpenClaw is running! Linking Telegram..."
+      sleep 15
+      docker exec openclaw openclaw telegram link "${telegramToken}" || true
+      echo "Telegram link complete."
+      break
+    fi
+    echo "Container not ready yet, retrying..."
+  done
+) &`
+    : `# Wait for OpenClaw to be ready (${channel === 'teams' ? 'Teams bridge' : 'WhatsApp webhook'} connects via HTTP, no telegram link needed)
+(
+  for attempt in $(seq 1 10); do
+    sleep 15
+    echo "Fix attempt $attempt: correcting providerFilter..."
+    docker run --rm -v openclaw-data:/data -v /opt/fix-bedrock.sh:/fix.sh:ro alpine /fix.sh
+    sleep 20
+    if docker exec openclaw openclaw --version >/dev/null 2>&1; then
+      echo "OpenClaw is running! Gateway ready for ${channel} messages."
+      break
+    fi
+    echo "Container not ready yet, retrying..."
+  done
+) &`
+
   const userData = Buffer.from(`#!/bin/bash
 set -e
 ${setupCommands}
@@ -194,13 +301,7 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
       "mode": "token"
     }
   },
-  "plugins": {
-    "entries": {
-      "telegram": {
-        "enabled": true
-      }
-    }
-  }${bedrockCredentials ? `,
+  ${pluginsConfig}${bedrockCredentials ? `,
   "models": {
     "bedrockDiscovery": {
       "enabled": true,
@@ -243,12 +344,7 @@ docker run -d \
 ${awsCredsDockerFlags}  -e BROWSER_CDP_URL=http://browser:9223 \
   -e BROWSER_DEFAULT_PROFILE=openclaw \
   -e BROWSER_EVALUATE_ENABLED=true \
-${apiKeyLine}  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
-  -e TELEGRAM_DM_POLICY=open \
-  -e TELEGRAM_ALLOW_FROM='*' \
-  -e TELEGRAM_ACTIONS_REACTIONS=true \
-  -e TELEGRAM_ACTIONS_STICKER=true \
-  -e OPENCLAW_PRIMARY_MODEL="${modelName}" \
+${apiKeyLine}${telegramDockerEnvVars}  -e OPENCLAW_PRIMARY_MODEL="${modelName}" \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \\
 ${extraEnvFlags ? '  ' + extraEnvFlags + ' \\\n' : ''}  coollabsio/openclaw:latest
 
@@ -259,23 +355,8 @@ sed -i 's/"providerFilter": "\\([^"]*\\)"/"providerFilter": ["\\1"]/' /data/.ope
 FIXEOF
 chmod +x /opt/fix-bedrock.sh
 
-# Keep fixing until the container stays up (configure may overwrite on restarts)
-(
-  for attempt in $(seq 1 10); do
-    sleep 15
-    echo "Fix attempt $attempt: correcting providerFilter..."
-    docker run --rm -v openclaw-data:/data -v /opt/fix-bedrock.sh:/fix.sh:ro alpine /fix.sh
-    sleep 20
-    if docker exec openclaw openclaw --version >/dev/null 2>&1; then
-      echo "OpenClaw is running! Linking Telegram..."
-      sleep 15
-      docker exec openclaw openclaw telegram link "${telegramToken}" || true
-      echo "Telegram link complete."
-      break
-    fi
-    echo "Container not ready yet, retrying..."
-  done
-) &
+${teamsBridgeSetup}
+${postLaunchLoop}
 `).toString('base64')
 
   const res = await ec2.send(

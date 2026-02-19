@@ -1,0 +1,14 @@
+{
+  "name": "teams-bridge",
+  "version": "1.0.0",
+  "description": "Bridge between Microsoft Teams and OpenClaw gateway API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "botbuilder": "^4.23.1",
+    "botframework-connector": "^4.23.1",
+    "express": "^4.21.0"
+  }
+}

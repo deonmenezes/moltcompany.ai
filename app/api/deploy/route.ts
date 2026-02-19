@@ -94,8 +94,8 @@ export async function POST(req: NextRequest) {
         gateway_token: gatewayToken,
         character_files: character_files || null,
         bot_id: bot_id || null,
-        companion_name: bot?.characterName || 'Custom Companion',
-        companion_role: bot?.characterRole || 'AI Assistant',
+        companion_name: bot?.characterName || (bot_id === 'clone' ? 'My Clone' : 'Custom Companion'),
+        companion_role: bot?.characterRole || (bot_id === 'clone' ? 'Digital Clone' : 'AI Assistant'),
         companion_color: bot?.color || '#FFD600',
         companion_avatar: bot?.avatar || null,
       })

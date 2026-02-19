@@ -7,7 +7,7 @@ import { TelegramConnect } from '@/components/TelegramConnect'
 import { CHARACTER_FILE_NAMES, type CharacterFiles } from '@/lib/character-files'
 import { supabaseBrowser } from '@/lib/supabase-browser'
 
-type DeployPhase = 'idle' | 'calling' | 'booting' | 'done'
+type DeployPhase = 'idle' | 'calling' | 'booting' | 'done' | 'already_deployed'
 
 function buildCharacterFiles(aboutText: string): CharacterFiles {
   const files = {} as CharacterFiles
@@ -172,6 +172,9 @@ function CloneForm() {
 
       if (data.redirect) {
         startBootSequence(data.redirect)
+      } else if (res.status === 409) {
+        // Already has a clone deployed
+        setDeployPhase('already_deployed')
       } else {
         setError(data.error || 'Something went wrong')
         setDeploying(false)
@@ -471,6 +474,49 @@ function CloneForm() {
                       Go to dashboard
                     </a>
                   )}
+                </div>
+              </>
+            )}
+
+            {/* Phase: already deployed */}
+            {deployPhase === 'already_deployed' && (
+              <>
+                <div className="w-24 h-24 mx-auto mb-6 bg-brand-yellow rounded-full flex items-center justify-center animate-bounce-once">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <h2 className="comic-heading text-3xl text-brand-yellow mb-2">ALREADY LIVE!</h2>
+                <p className="text-gray-300 font-body text-lg mb-1">
+                  You already have a clone running.
+                </p>
+                <p className="text-gray-400 font-body text-sm mb-8">
+                  Only one free clone at a time. Manage it from your console.
+                </p>
+                <div className="flex flex-col gap-3 items-center">
+                  <a
+                    href="/console"
+                    className="comic-btn text-lg py-4 px-10 flex items-center gap-3 no-underline"
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                    </svg>
+                    GO TO CONSOLE
+                  </a>
+                  <button
+                    onClick={() => {
+                      setDeployPhase('idle')
+                      setDeploying(false)
+                    }}
+                    className="text-sm text-gray-500 hover:text-white font-body transition"
+                  >
+                    Go back
+                  </button>
                 </div>
               </>
             )}

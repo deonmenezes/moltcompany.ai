@@ -93,6 +93,7 @@ export async function launchInstance({
   gatewayToken,
   characterFiles,
   extraEnvVars,
+  bedrockCredentials,
 }: {
   userId: string
   modelProvider: string
@@ -102,18 +103,19 @@ export async function launchInstance({
   gatewayToken: string
   characterFiles?: Record<string, string>
   extraEnvVars?: Record<string, string>
+  bedrockCredentials?: { accessKeyId: string; secretAccessKey: string; region: string }
 }) {
   const sgId = await getOrCreateSecurityGroup()
   const customAmiId = process.env.OPENCLAW_AMI_ID
   const amiId = customAmiId || await getUbuntuAmi()
 
   const apiKeyEnvVar = MODEL_ENV_MAP[modelProvider] || 'ANTHROPIC_API_KEY'
-  // Bedrock uses AWS creds (passed via extraEnvVars), not a separate API key
-  const apiKeyLine = modelProvider === 'bedrock'
+  // Bedrock uses AWS credentials file (not env vars) to avoid OpenClaw's buggy auto-discovery
+  const apiKeyLine = bedrockCredentials
     ? ''
     : `  -e ${apiKeyEnvVar}="${apiKey}" \\\n`
 
-  // Build extra env var flags for Docker (used by Bedrock etc.)
+  // Build extra env var flags for Docker
   const extraEnvFlags = Object.entries(extraEnvVars || {})
     .map(([k, v]) => `-e ${k}="${v}"`)
     .join(' \\\n  ')
@@ -138,6 +140,27 @@ export async function launchInstance({
 systemctl enable docker && systemctl start docker
 `
 
+  // Build AWS credentials file commands (for Bedrock — avoids env var detection bug)
+  const awsCredsSetup = bedrockCredentials ? `
+# Create AWS credentials file for Bedrock (NOT env vars — avoids OpenClaw discovery bug)
+mkdir -p /opt/aws-creds
+cat > /opt/aws-creds/credentials <<AWSEOF
+[default]
+aws_access_key_id = ${bedrockCredentials.accessKeyId}
+aws_secret_access_key = ${bedrockCredentials.secretAccessKey}
+AWSEOF
+cat > /opt/aws-creds/config <<AWSEOF
+[default]
+region = ${bedrockCredentials.region}
+AWSEOF
+chmod 600 /opt/aws-creds/credentials
+` : ''
+
+  // Docker volume mount + env vars for AWS credentials file
+  const awsCredsDockerFlags = bedrockCredentials
+    ? `  -v /opt/aws-creds:/aws-creds:ro \\\n  -e AWS_SHARED_CREDENTIALS_FILE=/aws-creds/credentials \\\n  -e AWS_CONFIG_FILE=/aws-creds/config \\\n`
+    : ''
+
   const userData = Buffer.from(`#!/bin/bash
 set -e
 ${setupCommands}
@@ -154,6 +177,7 @@ else
   PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "")
 fi
 
+${awsCredsSetup}
 # Create openclaw config for public IP access
 mkdir -p /opt/openclaw-config
 cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
@@ -209,7 +233,7 @@ docker run -d \
   --restart unless-stopped \
   -p 8080:8080 \
   -v openclaw-data:/data \
-  -e BROWSER_CDP_URL=http://browser:9223 \
+${awsCredsDockerFlags}  -e BROWSER_CDP_URL=http://browser:9223 \
   -e BROWSER_DEFAULT_PROFILE=openclaw \
   -e BROWSER_EVALUATE_ENABLED=true \
 ${apiKeyLine}  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
@@ -221,25 +245,8 @@ ${apiKeyLine}  -e TELEGRAM_BOT_TOKEN="${telegramToken}" \
   -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \\
 ${extraEnvFlags ? '  ' + extraEnvFlags + ' \\\n' : ''}  coollabsio/openclaw:latest
 
-# Fix OpenClaw bug: bedrockDiscovery.providerFilter must be array, not string
-# Wait for configure to write config, fix it, then restart
-(
-  sleep 20
-  echo "Fixing bedrockDiscovery config if needed..."
-  docker run --rm -v openclaw-data:/data alpine sh -c '
-    if grep -q "\"providerFilter\":" /data/.openclaw/openclaw.json 2>/dev/null; then
-      sed -i "s/\"providerFilter\": \"\([^\"]*\)\"/\"providerFilter\": [\"\1\"]/" /data/.openclaw/openclaw.json
-      echo "Fixed providerFilter to array format"
-    fi
-  '
-  echo "Restarting openclaw with fixed config..."
-  docker restart openclaw
-  sleep 10
-) &
-
 # Wait for openclaw container to be ready, then link Telegram bot
 (
-  sleep 35
   echo "Waiting for openclaw container to be ready..."
   for i in $(seq 1 60); do
     if docker exec openclaw openclaw --version >/dev/null 2>&1; then

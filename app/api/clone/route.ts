@@ -130,10 +130,10 @@ export async function POST(req: NextRequest) {
         telegramToken: telegram_bot_token,
         gatewayToken,
         characterFiles: character_files || undefined,
-        extraEnvVars: {
-          AWS_ACCESS_KEY_ID: awsAccessKeyId,
-          AWS_SECRET_ACCESS_KEY: awsSecretAccessKey,
-          AWS_REGION: awsRegion,
+        bedrockCredentials: {
+          accessKeyId: awsAccessKeyId,
+          secretAccessKey: awsSecretAccessKey,
+          region: awsRegion,
         },
       })
 

@@ -92,6 +92,7 @@ export async function launchInstance({
   telegramToken,
   gatewayToken,
   characterFiles,
+  extraEnvVars,
 }: {
   userId: string
   modelProvider: string
@@ -100,12 +101,18 @@ export async function launchInstance({
   telegramToken: string
   gatewayToken: string
   characterFiles?: Record<string, string>
+  extraEnvVars?: Record<string, string>
 }) {
   const sgId = await getOrCreateSecurityGroup()
   const customAmiId = process.env.OPENCLAW_AMI_ID
   const amiId = customAmiId || await getUbuntuAmi()
 
   const apiKeyEnvVar = MODEL_ENV_MAP[modelProvider] || 'ANTHROPIC_API_KEY'
+
+  // Build extra env var flags for Docker (used by Bedrock etc.)
+  const extraEnvFlags = Object.entries(extraEnvVars || {})
+    .map(([k, v]) => `-e ${k}="${v}"`)
+    .join(' \\\n  ')
 
   // Build base64-encoded write commands for character .md files
   let characterFileCommands = ''
@@ -208,7 +215,7 @@ docker run -d \
   -e TELEGRAM_ACTIONS_REACTIONS=true \
   -e TELEGRAM_ACTIONS_STICKER=true \
   -e OPENCLAW_PRIMARY_MODEL="${modelName}" \
-  -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \
+  -e OPENCLAW_GATEWAY_TOKEN="${gatewayToken}" \${extraEnvFlags ? '\n  ' + extraEnvFlags + ' \\' : ''}
   coollabsio/openclaw:latest
 
 # Wait for openclaw container to be ready, then link Telegram bot

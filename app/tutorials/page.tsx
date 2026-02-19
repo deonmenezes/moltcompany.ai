@@ -2,6 +2,12 @@ import Link from 'next/link'
 
 const tutorials = [
   {
+    id: 'create-agent',
+    title: 'How to Create Your Own Agent',
+    description: 'Create and deploy your own AI agent in under 60 seconds.',
+    video: '/avatars/create.mp4',
+  },
+  {
     id: 'hire-openclaw-bot',
     title: 'How to Hire an OpenClaw Bot',
     description: 'Learn how to deploy and set up your first OpenClaw AI companion on Telegram.',

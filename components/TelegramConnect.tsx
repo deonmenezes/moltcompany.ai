@@ -20,10 +20,10 @@ export function TelegramConnect({
   }
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <div className="comic-card p-6">
-        <h4 className="font-display font-bold mb-4 text-black uppercase">How to create your Telegram bot</h4>
-        <div className="space-y-4">
+    <div className="grid md:grid-cols-2 gap-4">
+      <div className="comic-card p-4">
+        <h4 className="font-display font-bold mb-3 text-black uppercase text-sm">How to create your Telegram bot</h4>
+        <div className="space-y-2">
           {[
             { step: '1', text: 'Open Telegram and search for @BotFather' },
             { step: '2', text: 'Start a chat and type /newbot' },
@@ -41,8 +41,8 @@ export function TelegramConnect({
         </div>
       </div>
 
-      <div className="comic-card p-6">
-        <h4 className="font-display font-bold mb-4 text-black uppercase">Enter bot token</h4>
+      <div className="comic-card p-4">
+        <h4 className="font-display font-bold mb-3 text-black uppercase text-sm">Enter bot token</h4>
         <input
           type="text"
           value={value}
@@ -56,7 +56,7 @@ export function TelegramConnect({
         <button
           onClick={handleSave}
           disabled={!value.trim() || !value.includes(':')}
-          className={`mt-4 w-full py-3 font-display font-bold uppercase border-3 transition ${
+          className={`mt-3 w-full py-2 font-display font-bold uppercase border-3 transition ${
             saved
               ? 'bg-green-100 text-green-700 border-green-700'
               : 'comic-btn disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none'

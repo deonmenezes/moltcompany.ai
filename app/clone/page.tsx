@@ -111,12 +111,12 @@ function CloneForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4">
+    <div className="min-h-screen bg-white pt-20 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
 
         {/* Hero */}
-        <div className="text-center mb-10">
-          <h1 className="comic-heading text-4xl md:text-5xl mb-3">
+        <div className="text-center mb-6">
+          <h1 className="comic-heading text-4xl md:text-5xl mb-2">
             CLONE <span className="yellow-highlight">YOURSELF</span>
           </h1>
           <p className="text-brand-gray-medium font-body text-lg">
@@ -129,7 +129,7 @@ function CloneForm() {
 
         {/* Failed banner */}
         {failed && (
-          <div className="mb-6 p-4 border-3 border-black bg-red-50">
+          <div className="mb-4 p-3 border-3 border-black bg-red-50">
             <p className="font-display font-bold text-sm text-red-700">
               DEPLOYMENT FAILED &mdash; Something went wrong. Please try again.
             </p>
@@ -137,16 +137,16 @@ function CloneForm() {
         )}
 
         {/* SECTION 1: About You */}
-        <div className="comic-card p-6 mb-6">
-          <h2 className="comic-heading text-xl mb-2">1. ABOUT YOU</h2>
-          <p className="text-sm text-brand-gray-medium mb-4 font-body">
-            Paste anything about yourself &mdash; your bio, how you talk, what you care about, your expertise. The more detail, the better the clone.
+        <div className="comic-card p-5 mb-4">
+          <h2 className="comic-heading text-xl mb-1">1. ABOUT YOU</h2>
+          <p className="text-sm text-brand-gray-medium mb-3 font-body">
+            Paste anything about yourself &mdash; your bio, how you talk, what you care about, your expertise.
           </p>
           <textarea
             value={aboutText}
             onChange={e => setAboutText(e.target.value)}
-            placeholder={"I'm a software engineer who loves building products. I talk casually, use humor, and always try to be helpful. I'm passionate about AI, startups, and good design. When people ask me for advice, I keep it practical and real..."}
-            rows={8}
+            placeholder={"I'm a software engineer who loves building products. I talk casually, use humor, and always try to be helpful. I'm passionate about AI, startups, and good design..."}
+            rows={4}
             maxLength={6000}
             className="w-full px-4 py-3 border-3 border-black text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow transition resize-none"
           />
@@ -154,9 +154,9 @@ function CloneForm() {
         </div>
 
         {/* SECTION 2: Telegram */}
-        <div className="comic-card p-6 mb-8">
-          <h2 className="comic-heading text-xl mb-2">2. TELEGRAM BOT</h2>
-          <p className="text-sm text-brand-gray-medium mb-4 font-body">
+        <div className="comic-card p-5 mb-5">
+          <h2 className="comic-heading text-xl mb-1">2. TELEGRAM BOT</h2>
+          <p className="text-sm text-brand-gray-medium mb-3 font-body">
             Create a bot on Telegram via @BotFather and paste the token.
           </p>
           <TelegramConnect token={telegramToken} onSave={setTelegramToken} />
@@ -184,8 +184,8 @@ function CloneForm() {
             'GO LIVE — FREE'
           )}
         </button>
-        <p className="text-xs text-brand-gray-medium text-center mt-3">
-          Your clone runs 24/7 on dedicated infrastructure &middot; Powered by AWS Bedrock
+        <p className="text-xs text-brand-gray-medium text-center mt-2">
+          Your clone runs 24/7 on dedicated infrastructure &middot; Powered by Gemini
         </p>
       </div>
     </div>

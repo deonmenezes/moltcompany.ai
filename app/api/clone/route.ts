@@ -7,9 +7,9 @@ import { rateLimit } from '@/lib/sanitize'
 
 export const maxDuration = 60
 
-// Free clone deployment — uses AWS Bedrock via platform AWS credentials
-const PLATFORM_MODEL_PROVIDER = 'amazon-bedrock'
-const PLATFORM_MODEL_NAME = 'amazon-bedrock/us.amazon.nova-pro-v1:0'
+// Free clone deployment — uses Gemini 2.0 Flash (simple API key, no Bedrock complexity)
+const PLATFORM_MODEL_PROVIDER = 'google'
+const PLATFORM_MODEL_NAME = 'google/gemini-2.0-flash'
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,15 +32,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Telegram bot token is required' }, { status: 400 })
     }
 
-    // AWS credentials for Bedrock (same creds used for EC2)
-    const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID
-    const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-    // Bedrock region must be where Claude models are available (us-east-1, us-west-2, etc.)
-    // This is separate from AWS_REGION which may point to the EC2 region (e.g. ap-south-1)
-    const awsBedrockRegion = process.env.AWS_BEDROCK_REGION || 'us-east-1'
-
-    if (!awsAccessKeyId || !awsSecretAccessKey) {
-      console.error('AWS credentials not configured for Bedrock')
+    // Gemini API key for clone deployments
+    const geminiApiKey = process.env.CLONE_GEMINI_API_KEY
+    if (!geminiApiKey) {
+      console.error('CLONE_GEMINI_API_KEY not configured')
       return NextResponse.json({ error: 'Clone service is temporarily unavailable' }, { status: 503 })
     }
 
@@ -105,7 +100,7 @@ export async function POST(req: NextRequest) {
         model_name: PLATFORM_MODEL_NAME,
         channel: 'telegram',
         telegram_bot_token: encrypt(telegram_bot_token),
-        llm_api_key: encrypt('bedrock-aws-credentials'),
+        llm_api_key: encrypt(geminiApiKey),
         gateway_token: gatewayToken,
         character_files: character_files || null,
         bot_id: 'clone',
@@ -122,21 +117,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create instance' }, { status: 500 })
     }
 
-    // Launch EC2 directly — no Stripe, Bedrock uses AWS creds
+    // Launch EC2 — Gemini uses simple API key, no Bedrock complexity
     try {
       const { instanceId: ec2InstanceId } = await launchInstance({
         userId: user.id,
         modelProvider: PLATFORM_MODEL_PROVIDER,
         modelName: PLATFORM_MODEL_NAME,
-        apiKey: 'bedrock-aws-credentials',
+        apiKey: geminiApiKey,
         telegramToken: telegram_bot_token,
         gatewayToken,
         characterFiles: character_files || undefined,
-        bedrockCredentials: {
-          accessKeyId: awsAccessKeyId,
-          secretAccessKey: awsSecretAccessKey,
-          region: awsBedrockRegion,
-        },
       })
 
       await supabase

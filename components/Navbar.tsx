@@ -28,8 +28,8 @@ export function Navbar() {
   const authTabs = [
     { href: '/console', label: 'Console', icon: 'grid' },
     { href: '/companions', label: 'Explore', icon: 'compass' },
+    { href: '/skills', label: 'Skills', icon: 'skills' },
     { href: '/create', label: 'Create', icon: 'plus' },
-    { href: '/community', label: 'Community', icon: 'users' },
     { href: '/sell', label: 'Sell', icon: 'sell' },
   ]
 
@@ -37,8 +37,8 @@ export function Navbar() {
   const guestTabs = [
     { href: '/', label: 'Home', icon: 'home' },
     { href: '/companions', label: 'Explore', icon: 'compass' },
+    { href: '/skills', label: 'Skills', icon: 'skills' },
     { href: '/community', label: 'Community', icon: 'users' },
-    { href: '/sell', label: 'Sell', icon: 'sell' },
     { href: '/login', label: 'Sign In', icon: 'login' },
   ]
 
@@ -87,6 +87,9 @@ export function Navbar() {
                 </Link>
                 <Link href="/clone" className={navLinkClass('/clone')}>
                   Clone
+                </Link>
+                <Link href="/skills" className={navLinkClass('/skills')}>
+                  Skills
                 </Link>
                 <Link href="/sell" className={navLinkClass('/sell')}>
                   Sell
@@ -160,6 +163,9 @@ export function Navbar() {
                 </Link>
                 <Link href="/clone" className={navLinkClass('/clone')}>
                   Clone
+                </Link>
+                <Link href="/skills" className={navLinkClass('/skills')}>
+                  Skills
                 </Link>
                 <Link href="/sell" className={navLinkClass('/sell')}>
                   Sell
@@ -302,6 +308,7 @@ function TabIcon({ name, active }: { name: string; active: boolean }) {
     users: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     user: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
     help: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+    skills: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
     sell: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>,
     login: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>,
   }

@@ -113,7 +113,9 @@ function CloneForm() {
     } catch { /* ignore */ }
   }, [])
 
-  const canDeploy = !!aboutText.trim() && !!telegramToken
+  const MIN_ABOUT_LENGTH = 500
+  const aboutTrimmed = aboutText.trim()
+  const canDeploy = aboutTrimmed.length >= MIN_ABOUT_LENGTH && !!telegramToken
 
   const handleSignIn = async () => {
     // Save form data before redirect
@@ -164,6 +166,7 @@ function CloneForm() {
         },
         body: JSON.stringify({
           telegram_bot_token: telegramToken,
+          about_text: aboutText.trim(),
           character_files: characterFiles,
         }),
       })
@@ -282,7 +285,11 @@ function CloneForm() {
             maxLength={6000}
             className="w-full px-4 py-3 border-3 border-brand-yellow/30 bg-[#0d0d20] text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow/60 transition resize-none"
           />
-          <p className="text-xs text-gray-500 mt-1">{aboutText.length}/6000 characters</p>
+          <p className={`text-xs mt-1 ${aboutTrimmed.length < MIN_ABOUT_LENGTH ? 'text-red-400' : 'text-green-400'}`}>
+            {aboutTrimmed.length}/{MIN_ABOUT_LENGTH} minimum characters
+            {aboutTrimmed.length >= MIN_ABOUT_LENGTH && ' — looking good!'}
+            {aboutTrimmed.length > 0 && aboutTrimmed.length < MIN_ABOUT_LENGTH && ` — ${MIN_ABOUT_LENGTH - aboutTrimmed.length} more to go`}
+          </p>
         </div>
 
         {/* SECTION 2: Telegram */}

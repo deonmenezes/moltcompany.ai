@@ -26,10 +26,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { telegram_bot_token, character_files } = body
+    const { telegram_bot_token, about_text, character_files } = body
 
     if (!telegram_bot_token) {
       return NextResponse.json({ error: 'Telegram bot token is required' }, { status: 400 })
+    }
+
+    if (!about_text || typeof about_text !== 'string' || about_text.trim().length < 500) {
+      return NextResponse.json({ error: 'Please write at least 500 characters about yourself.' }, { status: 400 })
     }
 
     // Gemini API key for clone deployments
@@ -102,7 +106,10 @@ export async function POST(req: NextRequest) {
         telegram_bot_token: encrypt(telegram_bot_token),
         llm_api_key: encrypt(geminiApiKey),
         gateway_token: gatewayToken,
-        character_files: character_files || null,
+        character_files: {
+          ...(character_files || {}),
+          _raw_about: about_text.trim(),
+        },
         bot_id: 'clone',
         companion_name: 'My Clone',
         companion_role: 'Digital Clone',

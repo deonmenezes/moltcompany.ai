@@ -16,6 +16,10 @@ Users can:
 
 ## 🏗️ Architecture
 
+### High-Level Infrastructure Overview
+
+![Architecture](docs/architecture-overview.svg)
+
 ### Stack
 - **Frontend**: Next.js 14 (React, TypeScript, Tailwind CSS)
 - **Backend**: Next.js API Routes

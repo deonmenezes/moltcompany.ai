@@ -390,7 +390,7 @@ ${postLaunchLoop}
   const res = await ec2.send(
     new RunInstancesCommand({
       ImageId: amiId,
-      InstanceType: instanceType,
+      InstanceType: instanceType as any,
       MinCount: 1,
       MaxCount: 1,
       SecurityGroupIds: [sgId],

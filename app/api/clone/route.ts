@@ -7,16 +7,17 @@ import { rateLimit } from '@/lib/sanitize'
 
 export const maxDuration = 60
 
-// Free clone deployment — uses OpenAI model with a platform-provided API key
-const PLATFORM_MODEL_PROVIDER = 'openai'
-const PLATFORM_MODEL_NAME = 'openai/gpt-5.2'
+// Free clone deployment — uses Gemini 2.0 Flash (simple API key, no Bedrock complexity)
+const PLATFORM_MODEL_PROVIDER = 'google'
+const PLATFORM_MODEL_NAME = 'google/gemini-2.0-flash'
 const MIN_ABOUT_LENGTH = 120
 const MAX_CHARACTER_BYTES = 32 * 1024
 
-function getCloneOpenAiKey() {
+function getCloneGeminiKey() {
   return (
-    process.env.CLONE_OPENAI_API_KEY ||
-    process.env.OPENAI_API_KEY ||
+    process.env.CLONE_GEMINI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
     null
   )
 }
@@ -44,10 +45,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Please write at least ${MIN_ABOUT_LENGTH} characters about yourself.` }, { status: 400 })
     }
 
-    // OpenAI API key for clone deployments
-    const openAiApiKey = getCloneOpenAiKey()
-    if (!openAiApiKey) {
-      console.error('No OpenAI key configured for clone route (checked CLONE_OPENAI_API_KEY, OPENAI_API_KEY)')
+    // Gemini API key for clone deployments
+    const geminiApiKey = getCloneGeminiKey()
+    if (!geminiApiKey) {
+      console.error('No Gemini key configured for clone route (checked CLONE_GEMINI_API_KEY, GEMINI_API_KEY, GOOGLE_API_KEY)')
       return NextResponse.json({ error: 'Clone service is temporarily unavailable' }, { status: 503 })
     }
 
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
         model_name: PLATFORM_MODEL_NAME,
         channel,
         telegram_bot_token: telegramToken ? encrypt(telegramToken) : null,
-        llm_api_key: encrypt(openAiApiKey),
+        llm_api_key: encrypt(geminiApiKey),
         gateway_token: gatewayToken,
         character_files: {
           ...(character_files || {}),
@@ -139,7 +140,7 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         modelProvider: PLATFORM_MODEL_PROVIDER,
         modelName: PLATFORM_MODEL_NAME,
-        apiKey: openAiApiKey,
+        apiKey: geminiApiKey,
         telegramToken,
         gatewayToken,
         characterFiles: character_files || undefined,

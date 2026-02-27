@@ -113,9 +113,9 @@ function CloneForm() {
     } catch { /* ignore */ }
   }, [])
 
-  const MIN_ABOUT_LENGTH = 500
+  const MIN_ABOUT_LENGTH = 120
   const aboutTrimmed = aboutText.trim()
-  const canDeploy = aboutTrimmed.length >= MIN_ABOUT_LENGTH && !!telegramToken
+  const canDeploy = aboutTrimmed.length >= MIN_ABOUT_LENGTH
 
   const handleSignIn = async () => {
     // Save form data before redirect
@@ -258,7 +258,7 @@ function CloneForm() {
             Turn yourself into a Openclaw AI in 60 seconds.
           </p>
           <p className="text-gray-500 font-body text-sm mt-1">
-            Completely free. Paste who you are, connect Telegram, go live.
+            Completely free. Paste who you are and launch instantly (Telegram optional).
           </p>
         </div>
 
@@ -273,7 +273,7 @@ function CloneForm() {
 
         {/* SECTION 1: About You */}
         <div className="comic-card-dark p-5 mb-4 animate-pulse-glow">
-          <h2 className="comic-heading text-xl mb-1 text-brand-yellow">1. ABOUT YOU</h2>
+          <h2 className="comic-heading text-xl mb-1 text-brand-yellow">1. ABOUT YOU (REQUIRED)</h2>
           <p className="text-sm text-gray-400 mb-3 font-body">
             Paste anything about yourself &mdash; your bio, how you talk, what you care about, your expertise.
           </p>
@@ -292,11 +292,11 @@ function CloneForm() {
           </p>
         </div>
 
-        {/* SECTION 2: Telegram */}
+        {/* SECTION 2: Telegram (optional) */}
         <div className="comic-card-dark p-5 mb-5">
-          <h2 className="comic-heading text-xl mb-1 text-brand-yellow">2. TELEGRAM BOT</h2>
+          <h2 className="comic-heading text-xl mb-1 text-brand-yellow">2. TELEGRAM BOT (OPTIONAL)</h2>
           <p className="text-sm text-gray-400 mb-3 font-body">
-            Create a bot on Telegram via @BotFather and paste the token.
+            Create a bot on Telegram via @BotFather and paste the token if you want Telegram enabled now. Leave blank to launch web-only first.
           </p>
           <TelegramConnect token={telegramToken} onSave={setTelegramToken} dark />
         </div>
@@ -360,7 +360,7 @@ function CloneForm() {
           </div>
         )}
         <p className="text-xs text-gray-600 text-center mt-2">
-          Your clone runs 24/7 on dedicated infrastructure &middot; Powered by Gemini
+          Your clone runs 24/7 on dedicated infrastructure &middot; Powered by OpenAI
         </p>
       </div>
 

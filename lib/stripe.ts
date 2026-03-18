@@ -26,8 +26,8 @@ export async function createCheckoutSession({
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'MoltCompany.ai - Managed AI Companion',
-            description: 'Fully managed AI Telegram bot on dedicated AWS infrastructure',
+            name: 'OpenClaw.AI - Managed AI Creator Bot',
+            description: 'Fully managed AI creator bot on dedicated AWS infrastructure',
           },
           unit_amount: 4000,
           recurring: { interval: 'month' },

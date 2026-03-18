@@ -3,8 +3,8 @@ import Link from 'next/link'
 const tutorials = [
   {
     id: 'hire-companion',
-    title: 'HOW TO HIRE A COMPANION',
-    desc: 'Deploy a verified AI employee to your Telegram in under 5 minutes.',
+    title: 'HOW TO DEPLOY A CREATOR BOT',
+    desc: 'Deploy a verified AI creator bot to your Telegram in under 5 minutes.',
     steps: [
       {
         heading: 'Sign in to your account',
@@ -12,7 +12,7 @@ const tutorials = [
       },
       {
         heading: 'Browse available companions',
-        text: 'Head to the Explore page to see all available AI companions. You can filter by category — Leadership, Engineering, or Operations — to find the right fit. Each card shows the companion\'s name, role, tagline, and monthly price ($40/month per companion).',
+        text: 'Head to the Explore page to see all available AI creator bots. You can filter by category — Creative, Production, or Publishing — to find the right fit. Each card shows the bot\'s name, role, tagline, and monthly price ($40/month per bot).',
       },
       {
         heading: 'Click "Hire" on the companion you want',
@@ -136,11 +136,11 @@ const tutorials = [
       },
       {
         heading: 'Copy the bot token',
-        text: 'After creating the bot, BotFather sends you a message with your bot token. It looks something like: 7123456789:AAF1xxxxxxxxxxxxxxxxxxxxxxxxxxx. Copy this entire token — you\'ll paste it into MoltCompany.ai during the deployment wizard.',
+        text: 'After creating the bot, BotFather sends you a message with your bot token. It looks something like: 7123456789:AAF1xxxxxxxxxxxxxxxxxxxxxxxxxxx. Copy this entire token — you\'ll paste it into OpenClaw during the deployment wizard.',
       },
       {
         heading: 'Keep your token safe',
-        text: 'Your bot token is like a password. Don\'t share it publicly. If it gets compromised, go back to @BotFather and use /revoke to generate a new one, then update the key in your MoltCompany.ai Console.',
+        text: 'Your bot token is like a password. Don\'t share it publicly. If it gets compromised, go back to @BotFather and use /revoke to generate a new one, then update the key in your OpenClaw Console.',
       },
     ],
   },
@@ -171,26 +171,26 @@ const tutorials = [
       },
       {
         heading: 'Important notes',
-        text: 'All API keys are encrypted with AES-256-GCM before being stored. Your key is never sent to MoltCompany.ai servers in plain text — it goes directly to the encrypted storage on your companion\'s dedicated EC2 instance. Usage costs for the LLM are billed by the provider (Anthropic, OpenAI, etc.) separately from the $40/month MoltCompany.ai hosting fee.',
+        text: 'All API keys are encrypted with AES-256-GCM before being stored. Your key is never sent to OpenClaw servers in plain text — it goes directly to the encrypted storage on your companion\'s dedicated EC2 instance. Usage costs for the LLM are billed by the provider (Anthropic, OpenAI, etc.) separately from the $40/month OpenClaw hosting fee.',
       },
     ],
   },
   {
     id: 'company-package',
-    title: 'HOW TO GET THE FULL COMPANY PACKAGE',
-    desc: 'Hire all 9 AI employees at once for $300/month (save $60).',
+    title: 'HOW TO GET THE FULL CREATOR PACK',
+    desc: 'Get all 9 AI creator bots at once for $300/month (save $60).',
     steps: [
       {
-        heading: 'Visit the Company Package page',
-        text: 'Click "Offer" in the navigation bar, or go directly to the Company Package page. This shows all 9 AI companions included in the deal.',
+        heading: 'Visit the Creator Pack page',
+        text: 'Go directly to the Creator Pack page. This shows all 9 AI creator bots included in the deal.',
       },
       {
         heading: 'Review what\'s included',
-        text: 'The package includes: Bob (CEO), Specter (Legal Advisor), Caroline (Sales Lead), Harsh (Developer), Sean (AI Engineer), Christopher (Cybersec/Pentester), Amy (HR Specialist), Xavier (Data Analyst), and Walter (Finance). Each runs on its own dedicated AWS server.',
+        text: 'The pack includes: Nova (Creative Director), Ziggy (Comic Book Writer), Luna (Content Writer), Axel (AI Video Generator), Pixel (Filmmaker), Blaze (Digital Artist), Sage (Posting Assistant), Reef (Video Editor), and Echo (Music Producer). Each runs on its own dedicated AWS server.',
       },
       {
         heading: 'Contact our support team',
-        text: 'The company package is set up manually by our team to ensure everything works perfectly. Reach out via:\n\n- Email: company@virelity.com\n- Phone: +971 56 643 3640\n\nWe\'ll have all 9 companions deployed and running on your Telegram within the hour.',
+        text: 'The creator pack is set up manually by our team to ensure everything works perfectly. Reach out via:\n\n- Email: company@virelity.com\n- Phone: +971 56 643 3640\n\nWe\'ll have all 9 creator bots deployed and running on your Telegram within the hour.',
       },
       {
         heading: 'Provide your details',
@@ -238,7 +238,7 @@ export default function DocsPage() {
         {/* Header */}
         <h1 className="comic-heading text-3xl md:text-4xl mb-2">DOCUMENTATION & TUTORIALS</h1>
         <p className="text-brand-gray-dark font-body mb-10 max-w-2xl">
-          Everything you need to know about hiring, creating, managing, and selling AI companions on MoltCompany.ai.
+          Everything you need to know about deploying, creating, managing, and selling AI creator bots on OpenClaw — the world's #1 creator bot platform for artists.
         </p>
 
         {/* Table of Contents */}

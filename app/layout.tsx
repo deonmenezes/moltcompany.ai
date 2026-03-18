@@ -13,10 +13,10 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'MoltCompany.ai - AI Companions That Work 24/7',
-  description: 'Hire your own AI companion in under 60 seconds. Choose from Claude, GPT, Gemini, Kimi, or MiniMax. $40/month, fully managed on dedicated servers.',
+  title: 'OpenClaw — World\'s #1 Creator Bot Generation Platform for Artists',
+  description: 'The world\'s #1 creator bot generation platform. Deploy AI bots for content writing, video generation, comic book creation, posting assistance, and more. Built for artists and creators.',
   icons: {
-    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦞</text></svg>',
+    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦅</text></svg>',
   },
 }
 

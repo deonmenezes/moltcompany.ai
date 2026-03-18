@@ -55,11 +55,11 @@ export default function CompanionsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="comic-heading text-3xl">ALL AI COMPANIONS</h1>
-            <p className="text-sm text-brand-gray-medium mt-1">Browse verified and community-created AI companions</p>
+            <h1 className="comic-heading text-3xl">ALL CREATOR BOTS</h1>
+            <p className="text-sm text-brand-gray-medium mt-1">Browse verified and community-created AI creator bots for artists</p>
           </div>
           <Link href="/create" className="comic-btn text-sm py-2 px-5 whitespace-nowrap">
-            PUBLISH COMPANION
+            PUBLISH BOT
           </Link>
         </div>
 

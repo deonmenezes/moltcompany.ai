@@ -3,34 +3,34 @@ import Image from 'next/image'
 import { bots } from '@/lib/bots'
 
 export default function CompanyPackagePage() {
-  const bob = bots.find((b) => b.id === 'bob-ceo')!
-  const team = bots.filter((b) => b.id !== 'bob-ceo')
+  const nova = bots.find((b) => b.id === 'nova-creative')!
+  const team = bots.filter((b) => b.id !== 'nova-creative')
 
   return (
     <div className="min-h-screen bg-brand-yellow pt-16">
 
-      {/* HERO - Meet Bob */}
+      {/* HERO - Meet Nova */}
       <section className="py-16 px-4 border-b-3 border-black bg-white">
         <div className="max-w-5xl mx-auto">
           <span className="inline-block px-4 py-1 bg-brand-yellow border-3 border-black font-display font-black text-sm uppercase mb-6 shadow-comic-sm">
-            THE OFFER
+            THE CREATOR PACK
           </span>
           <div className="flex flex-col md:flex-row items-center gap-10">
             <div className="flex-1">
               <h1 className="comic-heading text-4xl md:text-5xl lg:text-6xl mb-4 leading-[0.95]">
                 GET THE ENTIRE<br />
-                <span className="yellow-highlight">COMPANY FOR $300/MO</span>
+                <span className="yellow-highlight">CREATOR TEAM FOR $300/MO</span>
               </h1>
               <p className="text-lg text-brand-gray-dark font-body mb-6 max-w-lg">
-                Why hire one companion at $40/month when you can get all 9 for $300? That&apos;s a full AI department &mdash; CEO, Legal, Sales, Engineering, HR, Finance, and more &mdash; working 24/7 on your Telegram.
+                Why hire one creator bot at $40/month when you can get all 9 for $300? That&apos;s a full AI creative studio &mdash; Creative Director, Comic Writer, Content Writer, Filmmaker, Video Generator, Digital Artist, Posting Assistant, Video Editor, Music Producer &mdash; working 24/7 on your Telegram.
               </p>
 
               <div className="space-y-3 mb-8">
                 {[
-                  'All 9 AI companions on dedicated servers',
+                  'All 9 AI creator bots on dedicated servers',
                   'Save $60/month vs hiring individually',
                   'One subscription, one support team',
-                  'Full department coverage from day one',
+                  'Full creative studio coverage from day one',
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div className="w-6 h-6 border-2 border-black bg-brand-yellow flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -46,12 +46,12 @@ export default function CompanyPackagePage() {
               </Link>
             </div>
 
-            {/* Bob showcase */}
+            {/* Nova showcase */}
             <div className="comic-card p-6 text-center max-w-xs w-full">
               <div className="relative inline-block mb-4">
                 <Image
-                  src={bob.avatar}
-                  alt={bob.characterName}
+                  src={nova.avatar}
+                  alt={nova.characterName}
                   width={120}
                   height={120}
                   className="avatar-comic rounded-full bg-brand-gray"
@@ -60,14 +60,14 @@ export default function CompanyPackagePage() {
                   LEADS THE TEAM
                 </div>
               </div>
-              <h3 className="comic-heading text-3xl">{bob.characterName}</h3>
+              <h3 className="comic-heading text-3xl">{nova.characterName}</h3>
               <span
                 className="inline-block mt-1 px-3 py-0.5 text-xs font-display font-bold uppercase border-2 border-black"
-                style={{ backgroundColor: bob.color }}
+                style={{ backgroundColor: nova.color }}
               >
-                {bob.characterRole}
+                {nova.characterRole}
               </span>
-              <p className="font-body text-sm text-brand-gray-dark mt-3">{bob.tagline}</p>
+              <p className="font-body text-sm text-brand-gray-dark mt-3">{nova.tagline}</p>
             </div>
           </div>
         </div>
@@ -92,11 +92,11 @@ export default function CompanyPackagePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="comic-heading text-4xl md:text-5xl mb-2">
-              <span className="yellow-highlight bg-black text-white px-4 py-1 inline-block">YOUR FULL TEAM.</span>{' '}
+              <span className="yellow-highlight bg-black text-white px-4 py-1 inline-block">YOUR FULL CREATOR TEAM.</span>{' '}
               ALL INCLUDED.
             </h2>
             <p className="text-lg text-black font-body max-w-xl mx-auto mt-4">
-              8 specialized AI employees + Bob the CEO. Each runs on a dedicated AWS server, connected to your Telegram.
+              8 specialized AI creator bots + Nova the Creative Director. Each runs on a dedicated AWS server, connected to your Telegram.
             </p>
           </div>
 
@@ -138,9 +138,9 @@ export default function CompanyPackagePage() {
           <h2 className="comic-heading text-3xl md:text-4xl text-center mb-10">WHAT&apos;S INCLUDED</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: '&#127981;', title: '9 Dedicated Servers', desc: 'Each companion runs on its own isolated AWS EC2 instance. No shared resources.' },
-              { icon: '&#128274;', title: 'Full Encryption', desc: 'All API keys and tokens encrypted with AES-256-GCM. Your data stays private.' },
-              { icon: '&#128172;', title: 'Telegram Integration', desc: 'All 9 companions connected to your Telegram, ready to respond 24/7.' },
+              { icon: '&#127912;', title: '9 Dedicated Creator Bots', desc: 'Each creator bot runs on its own isolated AWS EC2 instance. No shared resources, full performance.' },
+              { icon: '&#128274;', title: 'Full Encryption', desc: 'All API keys and tokens encrypted with AES-256-GCM. Your creative work stays private.' },
+              { icon: '&#128172;', title: 'Telegram Integration', desc: 'All 9 creator bots connected to your Telegram, ready to assist your creative workflow 24/7.' },
             ].map((item, i) => (
               <div key={i} className="comic-card p-6 text-center">
                 <div className="text-4xl mb-4" dangerouslySetInnerHTML={{ __html: item.icon }} />
@@ -156,11 +156,11 @@ export default function CompanyPackagePage() {
       <section className="py-16 px-4 bg-black text-white">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="comic-heading text-4xl md:text-5xl mb-4">
-            READY TO HIRE YOUR<br />
-            <span className="text-brand-yellow">ENTIRE COMPANY?</span>
+            READY TO BUILD YOUR<br />
+            <span className="text-brand-yellow">ENTIRE CREATOR STUDIO?</span>
           </h2>
           <p className="text-xl text-gray-400 mb-8 font-body">
-            Contact our support team to get the full company package set up. We&apos;ll have all 9 companions deployed and running on your Telegram within the hour.
+            Contact our support team to get the full creator pack set up. We&apos;ll have all 9 creator bots deployed and running on your Telegram within the hour.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
@@ -175,7 +175,7 @@ export default function CompanyPackagePage() {
           </div>
 
           <p className="text-brand-yellow text-sm font-display font-bold uppercase">
-            $300/month &bull; All 9 companions &bull; Cancel anytime
+            $300/month &bull; All 9 creator bots &bull; Cancel anytime
           </p>
         </div>
       </section>

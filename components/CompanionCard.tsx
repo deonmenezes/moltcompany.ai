@@ -240,7 +240,7 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
         <div className="mx-5 mb-4 p-3 border-3 border-green-400 bg-green-50">
           <div className="text-[10px] font-display font-bold uppercase text-green-700 mb-1">WhatsApp Connected</div>
           <p className="text-[10px] text-green-600">
-            Messages to your WhatsApp Business number are routed through MoltCompany.ai to this companion.
+            Messages to your WhatsApp Business number are routed through OpenClaw.AI to this creator bot.
           </p>
           <p className="text-[10px] text-green-600 mt-1">
             Make sure the webhook URL in your Meta App Dashboard points to: <code className="font-mono">https://moltcompany.ai/api/whatsapp/webhook</code>

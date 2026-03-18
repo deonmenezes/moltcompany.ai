@@ -127,8 +127,8 @@ export default function CommunityBotDetailPage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${bot?.name || 'AI Companion'} on MoltCompany.AI`,
-          text: bot?.description || 'Check out this AI companion!',
+          title: `${bot?.name || 'AI Creator Bot'} on OpenClaw.AI`,
+          text: bot?.description || 'Check out this AI creator bot!',
           url,
         })
         return

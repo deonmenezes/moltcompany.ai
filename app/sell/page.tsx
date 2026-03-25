@@ -46,11 +46,11 @@ export default function SellPage() {
           </div>
           <h1 className="comic-heading text-4xl md:text-6xl lg:text-7xl mb-6">
             SELL YOUR<br />
-            <span className="text-brand-yellow">CREATOR BOTS</span>
+            <span className="text-brand-yellow">AI AGENTS</span>
           </h1>
           <p className="text-lg md:text-xl text-brand-gray-medium font-body max-w-2xl mx-auto mb-10">
-            Build, publish, and monetize AI creator bots on OpenClaw.
-            Reach thousands of artists and creators, and earn from every deployment.
+            Build, publish, and monetize AI agents on our marketplace.
+            Reach thousands of users and earn from every deployment.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="#enlist" className="comic-btn text-lg px-10 py-4 no-underline inline-block">
@@ -68,9 +68,9 @@ export default function SellPage() {
       {/* Why Sell */}
       <section className="max-w-5xl mx-auto px-4 py-16 md:py-20">
         <div className="text-center mb-12">
-          <h2 className="comic-heading text-3xl md:text-4xl mb-3">WHY SELL ON OPENCLAW?</h2>
+          <h2 className="comic-heading text-3xl md:text-4xl mb-3">WHY SELL ON MOLTCOMPANY.AI?</h2>
           <p className="text-brand-gray-medium font-body max-w-xl mx-auto">
-            We handle the infrastructure. You focus on building great creator bots.
+            We handle the infrastructure. You focus on building great agents.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -118,12 +118,12 @@ export default function SellPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { emoji: '&#127912;', title: 'Content Writers', desc: 'Caption bots, blog writers, script generators for creators' },
-            { emoji: '&#127916;', title: 'Video Generators', desc: 'AI video concept bots, storyboard generators, short-form creators' },
-            { emoji: '&#128218;', title: 'Comic Book Bots', desc: 'Panel writers, character designers, story arc builders' },
-            { emoji: '&#127925;', title: 'Music Producers', desc: 'Beat briefs, track structures, sonic identity bots' },
-            { emoji: '&#128247;', title: 'Posting Assistants', desc: 'Content schedulers, caption writers, social media managers' },
-            { emoji: '&#127775;', title: 'Digital Art Bots', desc: 'AI prompt generators, style guides, visual concept creators' },
+            { emoji: '&#128188;', title: 'Business Assistants', desc: 'Customer support, sales bots, scheduling agents' },
+            { emoji: '&#127912;', title: 'Creative Agents', desc: 'Writing helpers, brainstorming partners, content creators' },
+            { emoji: '&#128218;', title: 'Education Tutors', desc: 'Math tutors, language teachers, study companions' },
+            { emoji: '&#128187;', title: 'Developer Tools', desc: 'Code reviewers, debugging assistants, DevOps helpers' },
+            { emoji: '&#127918;', title: 'Entertainment Bots', desc: 'Game masters, storytellers, trivia hosts' },
+            { emoji: '&#128154;', title: 'Health & Wellness', desc: 'Fitness coaches, meditation guides, habit trackers' },
           ].map((item, i) => (
             <div key={i} className="flex gap-4 p-4 border-3 border-black bg-white hover:shadow-comic hover:-translate-y-0.5 transition-all duration-150">
               <span className="text-3xl shrink-0" dangerouslySetInnerHTML={{ __html: item.emoji }} />

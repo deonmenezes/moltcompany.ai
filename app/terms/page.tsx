@@ -17,12 +17,12 @@ export default function TermsPage() {
 
           <section>
             <h2 className="comic-heading text-xl mb-3">1. ACCEPTANCE OF TERMS</h2>
-            <p>By accessing and using OpenClaw (&quot;the Service&quot;), you accept and agree to be bound by these Terms of Service. If you do not agree, do not use the Service.</p>
+            <p>By accessing and using MoltCompany.ai (&quot;the Service&quot;), you accept and agree to be bound by these Terms of Service. If you do not agree, do not use the Service.</p>
           </section>
 
           <section>
             <h2 className="comic-heading text-xl mb-3">2. DESCRIPTION OF SERVICE</h2>
-            <p>OpenClaw provides managed AI companion deployment services. We deploy AI assistants on dedicated AWS infrastructure connected to your Telegram account. Each companion runs on its own server and is exclusively accessible to the account holder who purchased it.</p>
+            <p>MoltCompany.ai provides managed AI companion deployment services. We deploy AI assistants on dedicated AWS infrastructure connected to your Telegram account. Each companion runs on its own server and is exclusively accessible to the account holder who purchased it.</p>
           </section>
 
           <section>
@@ -47,12 +47,12 @@ export default function TermsPage() {
 
           <section>
             <h2 className="comic-heading text-xl mb-3">7. COMMUNITY COMPANIONS</h2>
-            <p>Community-created companions are provided as-is. OpenClaw does not guarantee the quality, safety, or accuracy of community-created content. Users who publish companions are responsible for their content.</p>
+            <p>Community-created companions are provided as-is. MoltCompany.ai does not guarantee the quality, safety, or accuracy of community-created content. Users who publish companions are responsible for their content.</p>
           </section>
 
           <section>
             <h2 className="comic-heading text-xl mb-3">8. LIMITATION OF LIABILITY</h2>
-            <p>The Service is provided &quot;as is&quot; without warranties of any kind. OpenClaw shall not be liable for any indirect, incidental, or consequential damages arising from use of the Service.</p>
+            <p>The Service is provided &quot;as is&quot; without warranties of any kind. MoltCompany.ai shall not be liable for any indirect, incidental, or consequential damages arising from use of the Service.</p>
           </section>
 
           <section>

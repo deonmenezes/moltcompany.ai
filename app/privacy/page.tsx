@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="comic-heading text-xl mb-3">1. INFORMATION WE COLLECT</h2>
-            <p>We collect the following information when you use OpenClaw:</p>
+            <p>We collect the following information when you use MoltCompany.ai:</p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li><strong>Account information:</strong> Email address, name, and phone number (if using phone auth)</li>
               <li><strong>Payment information:</strong> Processed securely via Stripe. We do not store your card details.</li>

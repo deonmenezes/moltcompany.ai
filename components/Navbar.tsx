@@ -54,7 +54,7 @@ export function Navbar() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="font-display font-black text-2xl text-black uppercase tracking-tight">
-              OPENCLAW<span className="text-brand-yellow">.AI</span>
+              MOLTCOMPANY<span className="text-brand-yellow">.AI</span>
             </Link>
             {/* GitHub with star - left side */}
             <a

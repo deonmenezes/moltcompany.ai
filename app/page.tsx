@@ -18,16 +18,16 @@ const SORT_OPTIONS = [
 
 const CATEGORIES = [
   { id: 'all', label: 'All' },
+  { id: 'leadership', label: 'Leadership' },
+  { id: 'engineering', label: 'Engineering' },
+  { id: 'operations', label: 'Operations' },
+  { id: 'productivity', label: 'Productivity' },
   { id: 'creative', label: 'Creative' },
-  { id: 'production', label: 'Production' },
-  { id: 'publishing', label: 'Publishing' },
-  { id: 'content', label: 'Content' },
-  { id: 'video', label: 'Video' },
-  { id: 'art', label: 'Art & Design' },
-  { id: 'music', label: 'Music' },
-  { id: 'writing', label: 'Writing' },
-  { id: 'social', label: 'Social Media' },
-  { id: 'comic', label: 'Comics' },
+  { id: 'business', label: 'Business' },
+  { id: 'developer', label: 'Developer' },
+  { id: 'education', label: 'Education' },
+  { id: 'entertainment', label: 'Entertainment' },
+  { id: 'finance', label: 'Finance' },
 ] as const
 
 const PAGE_SIZE = 30
@@ -226,18 +226,18 @@ export default function LandingPage() {
 
         <div className="relative max-w-5xl mx-auto text-center">
           <h1 className="comic-heading text-4xl md:text-6xl mb-4 leading-[0.95]">
-            WORLD&apos;S #1{' '}
-            <span className="yellow-highlight">CREATOR BOT PLATFORM</span>
+            WORLD&apos;S FIRST{' '}
+            <span className="yellow-highlight">OPENCLAW MARKETPLACE</span>
           </h1>
           <p className="text-lg text-brand-gray-dark mb-6 max-w-2xl mx-auto font-body">
-            Pick a creator bot. Connect Telegram/WhatsApp. Deploy. Your AI creative partner works 24/7 — content writing, video generation, comic scripts, posting assistance, and more.
+            Pick a companion. Connect Telegram/Whatsapp. Deploy. Your AI employee works 24/7.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/companions" className="comic-btn text-base inline-block">
-              EXPLORE CREATOR BOTS
+              HIRE YOUR COMPANION
             </Link>
             <Link href="/create" className="comic-btn-outline text-base inline-block">
-              BUILD YOUR OWN BOT
+              CREATE YOUR OWN AGENT
             </Link>
           </div>
         </div>
@@ -430,8 +430,8 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <span className="font-display font-black text-xl uppercase">OPENCLAW<span className="text-brand-yellow">.AI</span></span>
-              <p className="text-sm text-brand-gray-medium mt-2 font-body">World's #1 creator bot generation platform for artists.</p>
+              <span className="font-display font-black text-xl uppercase">MOLTCOMPANY<span className="text-brand-yellow">.AI</span></span>
+              <p className="text-sm text-brand-gray-medium mt-2 font-body">AI companions, fully managed.</p>
               <div className="flex gap-3 mt-4">
                 <a href="https://www.linkedin.com/company/111713673" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border-2 border-black flex items-center justify-center hover:bg-brand-yellow transition" title="LinkedIn">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
@@ -446,7 +446,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-brand-gray-medium">
                 <li><Link href="/companions" className="hover:text-black transition">All Companions</Link></li>
                 <li><Link href="/deploy" className="hover:text-black transition">Hire Companion</Link></li>
-                <li><Link href="/company-package" className="hover:text-black transition text-brand-yellow font-bold">Creator Pack - $300/mo</Link></li>
+                <li><Link href="/company-package" className="hover:text-black transition text-brand-yellow font-bold">Full Company - $300/mo</Link></li>
                 <li><Link href="/console" className="hover:text-black transition">Console</Link></li>
                 <li><Link href="/create" className="hover:text-black transition">Create Companion</Link></li>
               </ul>
@@ -486,7 +486,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t-2 border-black text-center text-sm text-brand-gray-medium font-body">
-            &copy; {new Date().getFullYear()} OpenClaw.AI &mdash; World&apos;s #1 Creator Bot Generation Platform for Artists.
+            &copy; {new Date().getFullYear()} MoltCompany.ai &mdash; AI Companions, Fully Managed.
           </div>
         </div>
       </footer>

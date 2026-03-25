@@ -360,7 +360,7 @@ function CloneForm() {
           </div>
         )}
         <p className="text-xs text-gray-600 text-center mt-2">
-          Your clone runs 24/7 on dedicated infrastructure &middot; Powered by OpenAI
+          Your clone runs 24/7 on dedicated infrastructure &middot; Powered by Gemini
         </p>
       </div>
 

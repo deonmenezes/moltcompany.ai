@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create instance' }, { status: 500 })
     }
 
-    // Launch EC2 — OpenAI uses simple API key
+    // Launch EC2 — Gemini uses simple API key, no Bedrock complexity
     try {
       const { instanceId: ec2InstanceId } = await launchInstance({
         userId: user.id,

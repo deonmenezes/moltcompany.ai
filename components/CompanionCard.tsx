@@ -301,13 +301,14 @@ export function CompanionCard({ instance, onAction, onRefresh, actionLoading }: 
       {/* Actions */}
       <div className="mt-auto border-t-3 border-black px-5 py-3 flex flex-col gap-2">
         <div className="flex flex-wrap gap-2">
-          {['pending_payment', 'failed'].includes(instance.status) && (
+          {/* Retry launch button - only for failed instances */}
+          {['failed'].includes(instance.status) && (
             <button
               onClick={handleRetryLaunch}
               disabled={retryingLaunch}
               className="comic-btn text-xs py-1.5 px-3 disabled:opacity-50"
             >
-              {retryingLaunch ? 'LAUNCHING...' : 'LAUNCH NOW'}
+              {retryingLaunch ? 'LAUNCHING...' : 'RETRY LAUNCH'}
             </button>
           )}
           {instance.public_ip && instance.status === 'running' && (

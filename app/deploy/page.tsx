@@ -146,12 +146,26 @@ function DeployForm() {
 
     const data = await res.json()
 
+    // 🚨 Handle single-instance conflict cleanly
+    if (res.status === 409) {
+      alert(
+        `You already have an instance (${data.existing_status}). Redirecting to Console...`
+      )
+      window.location.href = '/console'
+      return
+    }
+
+    if (!res.ok) {
+      alert(data.error || 'Deployment failed')
+      return
+    }
+
     if (data.redirect) {
       window.location.href = data.redirect
     } else if (data.url) {
       window.location.href = data.url
     } else {
-      alert(data.error || 'Something went wrong')
+      alert('Unexpected response from server')
     }
   }
 

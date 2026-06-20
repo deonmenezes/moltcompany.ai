@@ -86,6 +86,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
     }
 
+    // ===== SINGLE-INSTANCE GUARD =====
+    const { data: existing, error: existingErr } = await supabase
+      .from('instances')
+      .select('id,status,created_at')
+      .eq('user_id', user.id)
+      .in('status', ['pending_payment', 'provisioning', 'running', 'stopped', 'payment_failed'])
+
+    if (existingErr) {
+      console.error('Failed to check existing instances:', existingErr)
+      return NextResponse.json({ error: 'Failed to validate existing instances' }, { status: 500 })
+    }
+
+    if (existing && existing.length > 0) {
+      const now = Date.now()
+
+      for (const inst of existing) {
+        // Clean up stale pending_payment older than 30 minutes
+        if (
+          inst.status === 'pending_payment' &&
+          new Date(inst.created_at).getTime() < now - 30 * 60 * 1000
+        ) {
+          await supabase.from('instances').delete().eq('id', inst.id)
+          continue
+        }
+
+        return NextResponse.json(
+          {
+            error: 'You already have an existing instance. Terminate it before deploying a new one.',
+            existing_instance_id: inst.id,
+            existing_status: inst.status,
+          },
+          { status: 409 }
+        )
+      }
+    }
+    // ===== END GUARD =====
+
     // Look up companion metadata from bot definitions
     const bot = bots.find(b => b.id === bot_id)
 

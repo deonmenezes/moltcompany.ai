@@ -40,12 +40,13 @@ async function getOrCreateSecurityGroup(): Promise<string> {
   const createRes = await ec2.send(
     new CreateSecurityGroupCommand({
       GroupName: sgName,
-      Description: 'OpenClaw managed instances - allows 8080 inbound',
+      Description: 'OpenClaw managed instances – allows 8080 inbound',
     })
   )
 
   const groupId = createRes.GroupId!
 
+  // Always open port 8080 for the OpenClaw UI/Gateway
   await ec2.send(
     new AuthorizeSecurityGroupIngressCommand({
       GroupId: groupId,
@@ -54,19 +55,37 @@ async function getOrCreateSecurityGroup(): Promise<string> {
           IpProtocol: 'tcp',
           FromPort: 8080,
           ToPort: 8080,
-          IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'OpenClaw UI' }],
-        },
-        {
-          IpProtocol: 'tcp',
-          FromPort: 3978,
-          ToPort: 3978,
-          IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'Teams Bot Framework webhook' }],
+          IpRanges: [{ CidrIp: process.env.ALLOWED_UI_CIDR || '0.0.0.0/0', Description: 'OpenClaw UI' }],
         },
       ],
     })
   )
 
   return groupId
+}
+
+// Add Teams webhook port (3978) only when needed – called conditionally
+async function addTeamsPortToSecurityGroup(sgId: string) {
+  try {
+    await ec2.send(
+      new AuthorizeSecurityGroupIngressCommand({
+        GroupId: sgId,
+        IpPermissions: [
+          {
+            IpProtocol: 'tcp',
+            FromPort: 3978,
+            ToPort: 3978,
+            IpRanges: [{ CidrIp: '0.0.0.0/0', Description: 'Teams Bot Framework webhook' }],
+          },
+        ],
+      })
+    )
+  } catch (error: any) {
+    // Ignore duplicate rule errors (rule already exists)
+    if (error.name !== 'InvalidPermission.Duplicate') {
+      throw error
+    }
+  }
 }
 
 async function getUbuntuAmi(): Promise<string> {
@@ -117,6 +136,12 @@ export async function launchInstance({
   whatsappCredentials?: { phoneNumberId: string; accessToken: string }
 }) {
   const sgId = await getOrCreateSecurityGroup()
+
+  // If this is a Teams instance, open port 3978 (idempotently)
+  if (channel === 'teams') {
+    await addTeamsPortToSecurityGroup(sgId)
+  }
+
   const customAmiId = process.env.OPENCLAW_AMI_ID
   const amiId = customAmiId || await getUbuntuAmi()
 
@@ -295,7 +320,7 @@ cat > /opt/openclaw-config/openclaw.json <<CONFIGEOF
       "enabled": true,
       "allowInsecureAuth": true,
       "dangerouslyDisableDeviceAuth": true,
-      "allowedOrigins": ["http://\${PUBLIC_IP}:8080", "http://localhost:8080", "*"]
+      "allowedOrigins": ["http://\${PUBLIC_IP}:8080", "http://localhost:8080"]
     },
     "auth": {
       "mode": "token"
@@ -359,10 +384,13 @@ ${teamsBridgeSetup}
 ${postLaunchLoop}
 `).toString('base64')
 
+  // Instance type: default to t3.medium (cheaper), override via env var
+  const instanceType = process.env.INSTANCE_TYPE || 't3.medium'
+
   const res = await ec2.send(
     new RunInstancesCommand({
       ImageId: amiId,
-      InstanceType: 'm7i-flex.large',
+      InstanceType: instanceType,
       MinCount: 1,
       MaxCount: 1,
       SecurityGroupIds: [sgId],

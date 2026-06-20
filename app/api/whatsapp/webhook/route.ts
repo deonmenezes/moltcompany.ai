@@ -60,6 +60,13 @@ export async function POST(req: NextRequest) {
           continue
         }
 
+        // --- IDLE TRACKING UPDATE ---
+        // Mark that this instance received activity (even if gateway fails later)
+        await supabase
+          .from('instances')
+          .update({ last_activity_at: new Date().toISOString() })
+          .eq('id', instance.id)
+
         const accessToken = decrypt(instance.whatsapp_access_token)
 
         for (const msg of messages) {

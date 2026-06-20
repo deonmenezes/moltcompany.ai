@@ -25,14 +25,18 @@ function ConsoleContent() {
   const [instances, setInstances] = useState<any[]>([])
   const [subscription, setSubscription] = useState<any>(null)
   const [fetching, setFetching] = useState(true)
-  const [fulfilling, setFulfilling] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
   const fulfilledRef = useRef(false)
 
+  // ✅ Fixed: no nested function, single fetchInstances implementation
   const fetchInstances = async () => {
-    if (!session?.access_token) return
+    if (!session?.access_token) {
+      setFetching(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/instance', {
         headers: { Authorization: `Bearer ${session.access_token}` },
@@ -47,34 +51,16 @@ function ConsoleContent() {
     }
   }
 
-  // Fulfill payment when redirected from Stripe checkout
+  // Handle Stripe return – just refresh instances, webhook does the rest
   useEffect(() => {
-    if (!sessionId || !session?.access_token || fulfilledRef.current) return
+    if (!sessionId || fulfilledRef.current || !session) return
     fulfilledRef.current = true
-    setFulfilling(true)
 
-    fetch('/api/fulfill', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ session_id: sessionId }),
-    })
-      .then(async r => {
-        const data = await r.json()
-        if (!r.ok) {
-          console.error('Fulfill error:', data.error)
-        }
-        return data
-      })
-      .then(() => {
-        // Remove session_id from URL without reload
-        window.history.replaceState({}, '', '/console')
-        fetchInstances()
-      })
-      .catch(err => console.error('Fulfill error:', err))
-      .finally(() => setFulfilling(false))
+    // Remove session_id from URL without reload
+    window.history.replaceState({}, '', '/console')
+
+    // Fetch latest instances (webhook will have updated DB)
+    fetchInstances()
   }, [sessionId, session])
 
   useEffect(() => {
@@ -111,16 +97,11 @@ function ConsoleContent() {
     }
   }
 
-  if (loading || fetching || fulfilling) {
+  if (loading || fetching) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center pt-16">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-3 border-brand-yellow border-t-transparent rounded-full mx-auto mb-4" />
-          {fulfilling && (
-            <p className="text-brand-gray-medium font-display font-bold text-sm">
-              Setting up your companion...
-            </p>
-          )}
         </div>
       </div>
     )

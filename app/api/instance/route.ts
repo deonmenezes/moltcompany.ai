@@ -27,25 +27,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ instances: [], subscription: null })
     }
 
+    // Fixed filter syntax – now correctly excludes terminated and payment_failed
     const { data: instances } = await supabase
       .from('instances')
       .select('*')
       .eq('user_id', user.id)
-      .not('status', 'in', '("terminated","payment_failed")')
+      .not('status', 'in', '(terminated,payment_failed)')
       .order('created_at', { ascending: false })
 
-    // Sync AWS state for running/provisioning instances
+    // Sync AWS state for instances that are running, provisioning, or stopping
     if (instances?.length) {
       await Promise.allSettled(
         instances
-          .filter(i => i.ec2_instance_id && ['running', 'provisioning'].includes(i.status))
+          .filter(i => i.ec2_instance_id && ['running', 'provisioning', 'stopping'].includes(i.status))
           .map(async (instance) => {
             try {
               const [ip, state] = await Promise.all([
                 getInstancePublicIp(instance.ec2_instance_id!),
                 getInstanceState(instance.ec2_instance_id!),
               ])
-              const newStatus = state === 'running' ? 'running' : state === 'stopped' ? 'stopped' : instance.status
+              // Map AWS states to our statuses
+              let newStatus = instance.status
+              if (state === 'running') newStatus = 'running'
+              else if (state === 'stopped') newStatus = 'stopped'
+              else if (state === 'stopping') newStatus = 'stopping'
+              // For other states (pending, shutting-down, terminated) we keep current
               if (ip !== instance.public_ip || newStatus !== instance.status) {
                 await supabase
                   .from('instances')
@@ -203,14 +209,26 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    // Retry launch for stuck pending_payment instances
+    // Retry launch for stuck pending_payment instances – now with subscription guard
     if (action === 'retry_launch') {
+      // Ensure user has an active subscription (prevents unpaid launches)
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      if (!subscription) {
+        return NextResponse.json({ error: 'Active subscription required' }, { status: 403 })
+      }
+
       const { data: inst } = await supabase
         .from('instances')
         .select('*')
         .eq('id', instance_id)
         .eq('user_id', user.id)
-        .in('status', ['pending_payment', 'failed'])
+        .in('status', ['failed']) // Only allow retry from failed state (no unpaid launches)
         .maybeSingle()
 
       if (!inst) {
@@ -262,15 +280,17 @@ export async function PATCH(req: NextRequest) {
 
     if (action === 'stop') {
       await stopInstance(instance.ec2_instance_id)
+      // Set to 'stopping' and let GET sync update to 'stopped' when AWS confirms
       await supabase
         .from('instances')
-        .update({ status: 'stopped' })
+        .update({ status: 'stopping' })
         .eq('id', instance_id)
     } else if (action === 'start') {
       await startInstance(instance.ec2_instance_id)
+      // Set to 'provisioning' (already synced) instead of immediate 'running'
       await supabase
         .from('instances')
-        .update({ status: 'running' })
+        .update({ status: 'provisioning' })
         .eq('id', instance_id)
     }
 

@@ -1,262 +1,269 @@
-# OpenClaw Platform - One-Click AI Assistant Deployment SaaS
+# MoltCompany.ai
 
-A Next.js-based SaaS platform that lets users deploy their own private OpenClaw AI assistant instances on AWS EC2 with a single click.
+> Deploy and manage AI companions at scale. Browse the marketplace, connect Telegram, pay once—get a dedicated OpenClaw instance in minutes.
 
-## 🎯 What This Project Does
+A Next.js SaaS platform powered by [OpenClaw](https://github.com/coollabsio/openclaw). Users choose companions and models, complete Stripe checkout, and receive a dedicated EC2 instance running OpenClaw with their configuration.
 
-This is a managed platform that automates the deployment and hosting of [OpenClaw](https://github.com/coollabsio/openclaw) - an open-source AI assistant that can be integrated with Telegram, Discord, Slack, and WhatsApp.
+---
 
-Users can:
-- Sign in with Google (Supabase Auth)
-- Choose their preferred AI model (Claude, GPT, Gemini)
-- Enter their AI API key and Telegram bot token
-- Click "Deploy" to get a fully configured OpenClaw instance running on a dedicated EC2 server
-- Access their private OpenClaw web UI at `http://<PUBLIC_IP>:8080`
-- Connect their Telegram bot to the instance
+## Table of contents
 
-## 🏗️ Architecture
+- [What this project does](#what-this-project-does)
+- [Architecture](#architecture)
+- [Project structure](#project-structure)
+- [Key files](#key-files)
+- [Security](#security)
+- [Running the project](#running-the-project)
+- [Known issues and fixes](#known-issues-and-fixes)
+- [Troubleshooting](#troubleshooting)
+- [Future improvements](#future-improvements)
+- [Support](#support)
+
+---
+
+## What this project does
+
+MoltCompany.ai automates deployment and hosting of **OpenClaw**, an open-source AI assistant that integrates with Telegram, Discord, Slack, and WhatsApp.
+
+**Users can:**
+
+| Capability | Description |
+|------------|-------------|
+| **Sign in** | Google or phone (Supabase Auth) |
+| **Browse** | Official and community AI companions on the marketplace |
+| **Create** | Build and publish their own companions |
+| **Configure** | Choose model (Claude, GPT, Gemini, Kimi, MiniMax), API key, Telegram bot token |
+| **Subscribe** | Complete Stripe checkout to activate deployment |
+| **Deploy** | Receive a dedicated EC2 instance with OpenClaw after payment |
+| **Access** | Private web UI at `http://<PUBLIC_IP>:8080` and connect Telegram |
+
+The **Console** (`/console`) is where users manage instances, subscription, and billing.
+
+---
+
+## Architecture
 
 ### Stack
-- **Frontend**: Next.js 14 (React, TypeScript, Tailwind CSS)
-- **Backend**: Next.js API Routes
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (Google OAuth)
-- **Payments**: Stripe (currently commented out for testing)
-- **Infrastructure**: AWS EC2, AWS SDK for JavaScript v3
-- **Container Runtime**: Docker (on EC2 instances)
 
-### How Deployment Works
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 14, React, TypeScript, Tailwind CSS |
+| **Backend** | Next.js API Routes |
+| **Database** | Supabase (PostgreSQL) |
+| **Auth** | Supabase Auth (Google OAuth and phone) |
+| **Payments** | Stripe (checkout + webhooks; payment required before EC2 launch) |
+| **Infrastructure** | AWS EC2, AWS SDK for JavaScript v3 |
+| **Runtime** | Docker on EC2 instances |
 
-When a user clicks "Deploy":
+### Deployment flow
 
-1. **Instance Record Created** - Supabase stores instance metadata
-2. **EC2 Instance Launched** - AWS SDK launches an m7i-flex.large instance with:
-   - 20GB root volume (needed for Docker images)
-   - Custom user-data script that runs on first boot
-   - Security group allowing ports 22 (SSH) and 8080 (OpenClaw)
-3. **Docker Containers Started** - User-data script:
-   - Starts Docker service
-   - Creates Docker network `openclaw-net`
-   - Pulls and runs `coollabsio/openclaw-browser:latest` (browser sidecar for automation)
-   - Pulls and runs `coollabsio/openclaw:latest` (main app)
-4. **OpenClaw Configured** - Environment variables set:
-   - AI API key (Anthropic/OpenAI/Gemini)
-   - Primary model name
-   - Gateway token (auto-generated UUID for authentication)
-   - Browser sidecar URL
-   - Allowed origins (to enable web UI access from public IP)
-5. **User Accesses** - Dashboard shows public IP and gateway token
+| Step | What happens |
+|------|----------------|
+| **1. Deploy request** | User submits the form (model, API key, Telegram token, optional character files). Must be signed in. |
+| **2. Instance record** | Row created in `instances` with status `pending_payment`. Sensitive fields encrypted. |
+| **3. Stripe checkout** | User redirected to Stripe to complete payment (or trial). |
+| **4. Post-payment** | Stripe webhook (`checkout.session.completed`) or client-side fulfill API fetches pending instance, calls `launchInstance()` in `lib/aws.ts`, updates status to `provisioning` then `running`. |
+| **5. EC2 and OpenClaw** | User-data script installs Docker, runs OpenClaw browser sidecar and main app, applies character files and env. Console shows public IP and gateway token. |
 
-## 📁 Project Structure
+### Project structure
+
+<details>
+<summary>Click to expand full tree</summary>
 
 ```
-openclaw-setup/
+moltcompany.ai/
 ├── app/
-│   ├── page.tsx                    # Landing page
-│   ├── layout.tsx                  # Root layout
-│   ├── deploy/page.tsx             # Deployment form
-│   ├── dashboard/page.tsx          # User dashboard (shows instance)
+│   ├── page.tsx                      # Landing: marketplace, trending, search
+│   ├── layout.tsx                    # Root layout, Navbar, AuthProvider
+│   ├── globals.css
+│   ├── deploy/page.tsx               # Multi-step deploy form
+│   ├── dashboard/page.tsx            # Redirects to /console
+│   ├── console/page.tsx             # User console (instances, subscription)
+│   ├── companions/page.tsx           # Browse companions
+│   ├── companion/[id]/page.tsx       # Companion detail
+│   ├── companions/community/[id]/    # Community companion detail
+│   ├── create/page.tsx               # Create custom companion
+│   ├── community/
+│   │   ├── page.tsx                  # Community bots
+│   │   └── publish/page.tsx         # Publish to community
+│   ├── login/page.tsx
+│   ├── profile/page.tsx
+│   ├── tutorials/page.tsx
+│   ├── docs/page.tsx
+│   ├── support/page.tsx
+│   ├── terms/page.tsx
+│   ├── privacy/page.tsx
+│   ├── company-package/page.tsx
+│   ├── sell/page.tsx
 │   └── api/
-│       ├── deploy/route.ts         # POST - Launch new instance
-│       ├── instance/route.ts       # GET/PATCH/DELETE - Manage instance
-│       └── billing/route.ts        # Stripe billing portal
+│       ├── deploy/route.ts           # POST – pending instance + Stripe URL
+│       ├── fulfill/route.ts          # POST – post-payment EC2 launch
+│       ├── instance/route.ts         # GET/PATCH/DELETE – instances
+│       ├── billing/route.ts          # Stripe billing portal
+│       ├── webhooks/stripe/route.ts  # Stripe webhooks
+│       ├── bots/
+│       │   ├── route.ts              # GET – list bots
+│       │   ├── like/route.ts         # POST – like/unlike
+│       │   └── liked/route.ts        # GET – user's liked IDs
+│       ├── community/
+│       │   ├── route.ts
+│       │   ├── fork/route.ts
+│       │   └── vote/route.ts
+│       ├── reviews/route.ts
+│       ├── profile/route.ts
+│       └── phone-verify/route.ts
 ├── components/
-│   ├── InstanceCard.tsx            # Instance details card (with gateway token)
-│   ├── ModelSelector.tsx           # AI model picker
-│   ├── ChannelSelector.tsx         # Channel type picker
-│   ├── ApiKeyInput.tsx             # API key input
-│   └── AuthProvider.tsx            # Supabase auth wrapper
+│   ├── InstanceCard.tsx
+│   ├── ModelSelector.tsx
+│   ├── ChannelSelector.tsx
+│   ├── ApiKeyInput.tsx
+│   ├── AuthProvider.tsx
+│   ├── CharacterEditor.tsx          # Tabbed editor, 8KB limit
+│   ├── DeployButton.tsx
+│   ├── Navbar.tsx
+│   ├── TelegramConnect.tsx
+│   ├── BotCard.tsx
+│   ├── BotGrid.tsx
+│   ├── PumpBotCard.tsx
+│   ├── CompanionCard.tsx
+│   └── TestimonialCard.tsx
 ├── lib/
-│   ├── aws.ts                      # AWS EC2 functions (launch, stop, start, terminate)
-│   ├── supabase.ts                 # Supabase server client
-│   ├── supabase-browser.ts         # Supabase browser client
-│   ├── auth.ts                     # Auth helpers
-│   ├── stripe.ts                   # Stripe integration
-│   └── encryption.ts               # Encrypt sensitive data before storing
+│   ├── aws.ts                        # EC2: launch, IP/state, stop/start/terminate
+│   ├── supabase.ts
+│   ├── supabase-browser.ts
+│   ├── auth.ts                       # getUser(req) for API routes
+│   ├── stripe.ts
+│   ├── encryption.ts
+│   ├── sanitize.ts                   # sanitizeUrl, rateLimit
+│   ├── bots.ts                       # Official bot definitions
+│   ├── character-files.ts            # Preset character files per bot
+│   └── providers.ts                  # LLM providers and models
 ├── scripts/
-│   └── build-ami.sh                # Build custom AMI with Docker + images pre-installed
-├── supabase-migration.sql          # Database schema
-└── .env.local                      # Environment variables
+│   └── build-ami.sh                  # Optional: AMI with Docker + OpenClaw
+├── supabase-migration.sql            # Base schema
+├── supabase-migration-v2.sql        # instance: bot_id, companion_*
+├── supabase-migration-v3.sql        # companion_reviews
+├── package.json
+├── next.config.js
+├── tailwind.config.ts
+└── tsconfig.json
 ```
+</details>
 
-## 🔑 Key Files Explained
+| Folder | Purpose |
+|--------|---------|
+| **app/** | Next.js App Router: pages and API routes (deploy, instance, billing, bots, community, webhooks). |
+| **components/** | React UI: auth, deploy form, instance cards, bot cards, navbar, character editor. |
+| **lib/** | Server and shared logic: AWS EC2, Supabase, Stripe, auth, encryption, sanitize, bot data, providers. |
+| **scripts/** | Optional AMI build for faster EC2 boot. |
 
-### `lib/aws.ts`
-Contains all AWS EC2 operations:
-- `launchInstance()` - Launches EC2 with user-data that installs Docker and runs OpenClaw
-- `getInstancePublicIp()` - Fetches public IP
-- `getInstanceState()` - Checks if instance is running/stopped
-- `stopInstance()` - Stops EC2 instance
-- `startInstance()` - Restarts stopped instance
-- `terminateInstance()` - Permanently deletes instance
-- `getOrCreateSecurityGroup()` - Ensures security group exists with ports 22, 8080 open
+---
 
-**Critical Configuration:**
-- Uses **20GB root volume** (default 8GB is too small for both Docker images)
-- Launches **both containers** (`openclaw` + `browser` sidecar) - OpenClaw requires the browser container
-- Sets `OPENCLAW_GATEWAY_ALLOWED_ORIGINS="*"` to allow web UI access from public IP
+## Key files
 
-### `app/api/deploy/route.ts`
-Handles deployment:
-1. Validates user authentication
-2. Checks for existing active instance (only 1 per user)
-3. Generates gateway token (UUID)
-4. Calls `launchInstance()` from `lib/aws.ts`
-5. Stores instance record in Supabase with encrypted API keys
+| File | Role |
+|------|------|
+| **lib/aws.ts** | `launchInstance()`, `getInstancePublicIp()`, `getInstanceState()`, `stopInstance()`, `startInstance()`, `terminateInstance()`. 20GB root volume; ports 22, 8080; `OPENCLAW_GATEWAY_ALLOWED_ORIGINS="*"`. |
+| **app/api/deploy/route.ts** | Validates auth, rate limit (5/min), required fields, model; enforces 8 KB character files; creates user/instance `pending_payment`, returns Stripe checkout URL. No EC2 launch here. |
+| **app/api/fulfill/route.ts** | Post-payment: fetches pending instance, calls `launchInstance()`, updates status. Subscription upsert. |
+| **app/api/webhooks/stripe/route.ts** | `checkout.session.completed`: same launch flow; subscription insert. Handles subscription deleted and payment failed. |
+| **app/api/instance/route.ts** | GET: list instances, sync AWS state, subscription. PATCH: start/stop, update API key. DELETE: terminate and cancel Stripe. |
 
-### `app/api/instance/route.ts`
-- **GET** - Fetches instance details, updates public IP/status from AWS
-- **PATCH** - Start/stop instance
-- **DELETE** - Terminate instance permanently
+**Database (migrations):** `users` (email/phone, Stripe customer ID), `instances` (status, encrypted keys, gateway token, character files, companion metadata), `subscriptions`, `companion_reviews` (v3).
 
-### `supabase-migration.sql`
-Database schema:
-- `users` - User accounts (linked to Google OAuth)
-- `instances` - EC2 instances (one per user, stores encrypted API keys)
-- `subscriptions` - Stripe subscriptions (currently unused)
+---
 
-## 🐛 Known Issues & Fixes Applied
+## Security
 
-### Issue 1: Missing Browser Sidecar (FIXED ✅)
-**Problem**: Original deployment only launched the `openclaw` container. OpenClaw's nginx config references an upstream "browser" service that didn't exist, causing crash loop.
+- **Secrets** – API keys and Telegram tokens encrypted at rest (`lib/encryption.ts`). Set `ENCRYPTION_KEY` or `NEXTAUTH_SECRET` in production.
+- **Gateway** – Per-instance UUID as OpenClaw web UI password.
+- **Network** – Security group allows only ports 22 and 8080.
+- **API** – Deploy endpoint rate-limited; Stripe webhook signature verified.
 
-**Fix**: Updated `lib/aws.ts` to:
-1. Create Docker network `openclaw-net`
-2. Launch `coollabsio/openclaw-browser:latest` first
-3. Launch `openclaw` container with `BROWSER_CDP_URL=http://browser:9223`
+---
 
-### Issue 2: Disk Space Exhaustion (FIXED ✅)
-**Problem**: Default 8GB root volume filled up when pulling browser image (3GB + 3GB = 6GB for both images).
-
-**Fix**: Added `BlockDeviceMappings` to `RunInstancesCommand` with 20GB `gp3` volume.
-
-### Issue 3: Gateway Origin Blocking (FIXED ✅)
-**Problem**: OpenClaw gateway rejected connections from public IP with error: `origin not allowed`
-
-**Fix**: Added `OPENCLAW_GATEWAY_ALLOWED_ORIGINS="*"` environment variable to allow web UI access.
-
-### Issue 4: Gateway Token Not Displayed (FIXED ✅)
-**Problem**: Dashboard showed instance details but not the gateway token (password for web UI).
-
-**Fix**: Updated `components/InstanceCard.tsx` to display gateway token with copy button.
-
-## 🚀 Deployment Process
+## Running the project
 
 ### Prerequisites
-1. AWS credentials configured (`~/.aws/credentials` or environment variables)
-2. Supabase project with Google OAuth configured
-3. (Optional) Stripe account for payments
 
-### Environment Variables (`.env.local`)
-```bash
-# Stripe
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+- Node.js and npm  
+- AWS credentials (`~/.aws/credentials` or env)  
+- Supabase project (Auth: Google, optionally phone)  
+- Stripe account (checkout + webhook)
 
-# NextAuth
-NEXTAUTH_SECRET=your-secret-key
-NEXTAUTH_URL=http://localhost:3000
+### Environment variables (.env.local)
 
-# Google OAuth
-GOOGLE_CLIENT_ID=...apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-...
+| Group | Variables |
+|-------|-----------|
+| **Stripe** | `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
+| **Supabase** | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| **Auth** | `NEXTAUTH_SECRET`, `NEXTAUTH_URL`; Google OAuth via Supabase |
+| **AWS** | `AWS_REGION`, optional `OPENCLAW_AMI_ID` |
+| **Encryption** | `ENCRYPTION_KEY` or `NEXTAUTH_SECRET` |
 
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+### Commands
 
-# AWS
-AWS_REGION=ap-south-1
-OPENCLAW_AMI_ID=ami-07b675c5a24f34a0b  # Optional: custom AMI with Docker pre-installed
-```
-
-### Run Locally
 ```bash
 npm install
 npm run dev
 ```
-Go to http://localhost:3000
 
-### Database Setup
-Run `supabase-migration.sql` in your Supabase SQL Editor.
+Then open **http://localhost:3000**.
 
-### Build Custom AMI (Optional but Recommended)
-Pre-bakes Docker + OpenClaw images into an AMI for faster instance startup:
+### Database
+
+Run `supabase-migration.sql`, then `supabase-migration-v2.sql` and `supabase-migration-v3.sql` in the Supabase SQL Editor as needed.
+
+### Optional: custom AMI
+
+Faster instance boot by pre-baking Docker and OpenClaw images:
+
 ```bash
 bash scripts/build-ami.sh
-# Copy the AMI ID to .env.local as OPENCLAW_AMI_ID
 ```
 
-## 🔐 Security Notes
-
-- API keys are encrypted before storing in Supabase (`lib/encryption.ts`)
-- Gateway token is generated per-instance (UUID) for authentication
-- Basic auth enabled on OpenClaw web UI (username: `admin`, password: gateway token)
-- Security group restricts inbound to ports 22, 8080 only
-
-## 💰 Billing (Currently Disabled)
-
-Stripe integration exists but is commented out in `app/api/deploy/route.ts`.
-
-To enable:
-1. Uncomment Stripe checkout session code
-2. Set up Stripe webhook endpoint
-3. Implement subscription validation before allowing instance creation
-
-## 🛠️ Future Improvements
-
-- [ ] Auto-stop instances after X hours of inactivity
-- [ ] Health checks and auto-restart for failed containers
-- [ ] Custom domain support (Route53 + SSL)
-- [ ] Multi-region deployment
-- [ ] Instance size selector (currently hardcoded to m7i-flex.large)
-- [ ] Backup/restore for OpenClaw data volumes
-- [ ] Telegram bot configuration via web UI (currently manual)
-
-## 📞 Support
-
-For issues with:
-- **OpenClaw itself**: https://github.com/coollabsio/openclaw
-- **This platform**: Check the instance logs via AWS Console or SSH into EC2 to run `docker logs openclaw`
-
-## 🧪 Testing Checklist
-
-Before deploying to production:
-- [ ] Test deployment with all 3 AI providers (Anthropic, OpenAI, Google)
-- [ ] Test stop/start/terminate instance actions
-- [ ] Verify gateway token authentication works
-- [ ] Test Telegram bot integration
-- [ ] Load test OpenClaw web UI
-- [ ] Verify all Docker containers stay running after reboot
-- [ ] Check disk space doesn't fill up after multiple model switches
-- [ ] Ensure database credentials are encrypted
+Set the AMI ID as `OPENCLAW_AMI_ID` in `.env.local`.
 
 ---
 
-## Quick Troubleshooting
+## Known issues and fixes
 
-**Instance shows "Running" but web UI won't load:**
-- Check security group allows port 8080
-- Check if both containers are running: SSH in and run `docker ps`
-- Check OpenClaw logs: `docker logs openclaw`
-- Check browser sidecar logs: `docker logs browser`
-
-**Gateway connection error:**
-- Verify `OPENCLAW_GATEWAY_ALLOWED_ORIGINS="*"` is set in container env
-- Check browser console for CORS errors
-
-**Container keeps restarting:**
-- Check disk space: `df -h`
-- Check logs: `docker logs openclaw --tail 100`
-- Verify both Docker images are present: `docker images`
-
-**No public IP assigned:**
-- Instance may still be launching (wait 2-3 min)
-- Check VPC has internet gateway attached
-- Verify subnet has public IP auto-assign enabled
+| Issue | Fix |
+|-------|-----|
+| **Browser sidecar** | `lib/aws.ts` creates `openclaw-net`, runs `openclaw-browser` first, then OpenClaw with `BROWSER_CDP_URL=http://browser:9223`. |
+| **Disk space** | 20GB gp3 root volume (default 8GB too small). |
+| **Gateway origin** | `OPENCLAW_GATEWAY_ALLOWED_ORIGINS="*"` set for web UI from public IP. |
+| **Gateway token in UI** | `InstanceCard` shows token with copy button. |
 
 ---
 
-Built with ❤️ for easy OpenClaw deployment
+## Troubleshooting
+
+| Symptom | Checks |
+|---------|--------|
+| Instance "Running" but web UI not loading | Security group allows 8080; on instance: `docker ps`, `docker logs openclaw`, `docker logs browser`. |
+| Gateway / CORS errors | Confirm `OPENCLAW_GATEWAY_ALLOWED_ORIGINS="*"` in container env. |
+| Containers restarting | `df -h`, logs; ensure both images present. |
+| No public IP | Wait a few minutes; VPC internet gateway and subnet auto-assign public IP. |
+
+---
+
+## Future improvements
+
+- Auto-stop instances after inactivity  
+- Health checks and auto-restart for containers  
+- Custom domain and SSL (e.g. Route53)  
+- Multi-region and instance size options  
+- Backup/restore for OpenClaw data  
+- Telegram bot configuration via web UI  
+
+---
+
+## Support
+
+- **OpenClaw:** https://github.com/coollabsio/openclaw  
+- **This platform:** Inspect instance logs in AWS or run `docker logs openclaw` on the EC2 instance.
+
+---
+
+Built with care for simple, reliable OpenClaw deployment.

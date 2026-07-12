@@ -31,15 +31,18 @@ export async function POST(req: NextRequest) {
         break
       }
 
-      // Save subscription
+      // Upsert so Stripe retries don't hit duplicate key on stripe_subscription_id
       const subscriptionId = session.subscription as string
       const isTrial = session.payment_status === 'no_payment_required'
-      await supabase.from('subscriptions').insert({
-        user_id: userId,
-        stripe_subscription_id: subscriptionId,
-        status: isTrial ? 'trialing' : 'active',
-        current_period_end: new Date(Date.now() + (isTrial ? 3 : 30) * 24 * 60 * 60 * 1000).toISOString(),
-      })
+      await supabase.from('subscriptions').upsert(
+        {
+          user_id: userId,
+          stripe_subscription_id: subscriptionId,
+          status: isTrial ? 'trialing' : 'active',
+          current_period_end: new Date(Date.now() + (isTrial ? 3 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        { onConflict: 'stripe_subscription_id' }
+      )
 
       // Update user's stripe customer ID
       await supabase
